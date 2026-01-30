@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">Upcoming Fixtures</h3>
+  <a class="btn btn-outline-primary" href="/public">Back</a>
+</div>
+
+{% if fixtures|length == 0 %}
+  <div class="alert alert-info">No fixtures scheduled.</div>
+{% else %}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Match</th>
+          <th>Venue</th>
+          <th>Competition</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in fixtures %}
+        <tr>
+          <td>{{ f.match_date }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <!-- Your club -->
+              <img src="/static/img/logo.png" width="28" height="28" alt="Club Logo">
+              <strong>FCMS</strong>
+
+              <span class="mx-1">vs</span>
+
+              <!-- Opponent -->
+              {% if f.opponent_logo %}
+                <img src="/static/img/opponents/{{ f.opponent_logo }}" width="28" height="28" alt="Opponent Logo">
+              {% endif %}
+              {{ f.opponent }}
+            </div>
+          </td>
+          <td>{{ f.venue }}</td>
+          <td>{{ f.competition or "-" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+{% endblock %}

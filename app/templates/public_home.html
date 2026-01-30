@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-1">Club Fan Site</h2>
+    <div class="text-muted">News, fixtures, and results</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary" href="/public/news">News</a>
+    <a class="btn btn-outline-primary" href="/public/fixtures">Fixtures</a>
+    <a class="btn btn-outline-primary" href="/public/results">Results</a>
+  </div>
+</div>
+
+<div class="row g-3">
+
+  <!-- Latest News -->
+  <div class="col-lg-6">
+    <div class="card p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0">Latest News</h5>
+        <a href="/public/news">View all</a>
+      </div>
+
+      {% if latest_news|length == 0 %}
+        <div class="text-muted">No news posted yet.</div>
+      {% else %}
+        {% for n in latest_news %}
+          <div class="border rounded p-2 mb-2">
+            <div class="d-flex justify-content-between">
+              <strong>{{ n.title }}</strong>
+              <span class="text-muted small">{{ n.published_at.date() }}</span>
+            </div>
+            <div class="text-muted small mt-1">
+              {{ n.body[:140] }}{% if n.body|length > 140 %}...{% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Upcoming Fixtures -->
+  <div class="col-lg-6">
+    <div class="card p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0">Upcoming Fixtures</h5>
+        <a href="/public/fixtures">View all</a>
+      </div>
+
+      {% if upcoming|length == 0 %}
+        <div class="text-muted">No upcoming fixtures.</div>
+      {% else %}
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Opponent</th>
+                <th>Venue</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in upcoming %}
+              <tr>
+                <td>{{ f.match_date }}</td>
+                <td>{{ f.opponent }}</td>
+                <td>{{ f.venue }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recent Results -->
+  <div class="col-12">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0">Recent Results</h5>
+        <a href="/public/results">View all</a>
+      </div>
+
+      {% if recent_results|length == 0 %}
+        <div class="text-muted">No results yet.</div>
+      {% else %}
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Opponent</th>
+                <th>Venue</th>
+                <th style="width: 140px;">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in recent_results %}
+              <tr>
+                <td>{{ r.match_date }}</td>
+                <td>{{ r.opponent }}</td>
+                <td>{{ r.venue }}</td>
+                <td>
+                  {% if r.home_score is not none and r.away_score is not none %}
+                    <strong>{{ r.home_score }} - {{ r.away_score }}</strong>
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

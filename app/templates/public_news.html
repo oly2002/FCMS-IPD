@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">News</h3>
+  <a class="btn btn-outline-primary" href="/public">Back</a>
+</div>
+
+{% if items|length == 0 %}
+  <div class="alert alert-info">No news posted yet.</div>
+{% else %}
+  {% for n in items %}
+    <div class="card p-3 mb-3">
+      <h5 class="mb-1">{{ n.title }}</h5>
+      <div class="text-muted mb-2">{{ n.published_at.strftime("%Y-%m-%d %H:%M") }}</div>
+      <div>{{ n.body }}</div>
+    </div>
+  {% endfor %}
+{% endif %}
+
+{% endblock %}

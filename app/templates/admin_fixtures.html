@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">Fixtures & Results</h3>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary" href="/admin/sessions">Sessions</a>
+    <a class="btn btn-outline-primary" href="/admin/news">News</a>
+    <a class="btn btn-primary" href="/admin/fixtures/create">+ Create Fixture</a>
+  </div>
+</div>
+
+{% if fixtures|length == 0 %}
+  <div class="alert alert-info">No fixtures yet.</div>
+{% else %}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Match</th>
+          <th>Venue</th>
+          <th>Competition</th>
+          <th>Status</th>
+          <th>Score</th>
+          <th style="width: 170px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in fixtures %}
+        <tr>
+          <td>{{ f.match_date }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <!-- Club logo -->
+              <img src="/static/img/logo.png" width="26" height="26" alt="Club Logo">
+              <strong>FCMS</strong>
+
+              <span class="mx-1">vs</span>
+
+              <!-- Opponent logo -->
+              {% if f.opponent_logo %}
+                <img src="/static/img/opponents/{{ f.opponent_logo }}" width="26" height="26" alt="Opponent Logo">
+              {% else %}
+                <span class="text-muted small">(no logo)</span>
+              {% endif %}
+              {{ f.opponent }}
+            </div>
+          </td>
+
+          <td>{{ f.venue }}</td>
+          <td>{{ f.competition or "-" }}</td>
+          <td>
+            {% if f.is_played %}
+              <span class="badge bg-success">Played</span>
+            {% else %}
+              <span class="badge bg-secondary">Upcoming</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if f.is_played and f.home_score is not none and f.away_score is not none %}
+              {{ f.home_score }} - {{ f.away_score }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>
+            <a class="btn btn-sm btn-outline-secondary" href="/admin/fixtures/{{ f.id }}/edit">Edit</a>
+            <form method="post" action="/admin/fixtures/{{ f.id }}/delete" style="display:inline;">
+              <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this fixture?')">
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+{% endblock %}

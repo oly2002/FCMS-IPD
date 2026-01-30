@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="mb-3">{% if mode=="create" %}Post News{% else %}Edit News{% endif %}</h3>
+
+<form method="post" class="card p-3" style="max-width: 800px;">
+  <div class="mb-2">
+    <label class="form-label">Title *</label>
+    <input class="form-control" name="title" value="{{ item.title if item else '' }}" required>
+  </div>
+  <div class="mb-2">
+    <label class="form-label">Body *</label>
+    <textarea class="form-control" name="body" rows="6" required>{{ item.body if item else '' }}</textarea>
+  </div>
+
+  <div class="mt-2 d-flex gap-2">
+    <button class="btn btn-success" type="submit">Save</button>
+    <a class="btn btn-secondary" href="/admin/news">Cancel</a>
+  </div>
+</form>
+
+{% endblock %}

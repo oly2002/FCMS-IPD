@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">All Bookings</h3>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary" href="/admin/sessions">Sessions</a>
+    <a class="btn btn-outline-primary" href="/admin/reports">Reports</a>
+  </div>
+</div>
+
+{% if bookings|length == 0 %}
+  <div class="alert alert-info">No bookings yet.</div>
+{% else %}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Session</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Location</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td>{{ b.player.profile_emoji or "🙂" }}</td>
+          <td>{{ b.player.full_name }}</td>
+          <td>{{ b.session.title }}</td>
+          <td>{{ b.session.session_date }}</td>
+          <td>{{ b.session.start_time.strftime("%H:%M") }}</td>
+          <td>{{ b.session.location }}</td>
+          <td>
+            {% if b.status == "booked" %}
+              <span class="badge bg-success">Booked</span>
+            {% else %}
+              <span class="badge bg-secondary">Cancelled</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h3 class="mb-0">My Profile</h3>
+    <div class="text-muted">Account details</div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card p-3">
+      <div class="d-flex align-items-center gap-3">
+        <div style="font-size: 42px; line-height: 1;">
+          {{ current_user.profile_emoji or "🙂" }}
+        </div>
+        <div>
+          <div class="h5 mb-1">{{ current_user.full_name }}</div>
+          <div class="text-muted">{{ current_user.email }}</div>
+          <span class="badge bg-dark mt-2 text-uppercase">{{ current_user.role }}</span>
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="d-flex gap-2 flex-wrap">
+        {% if current_user.role == "admin" %}
+          <a class="btn btn-outline-primary btn-sm" href="/admin/sessions">Admin Area</a>
+        {% elif current_user.role == "coach" %}
+          <a class="btn btn-outline-primary btn-sm" href="/coach/">Coach Area</a>
+        {% else %}
+          <a class="btn btn-outline-primary btn-sm" href="/player/sessions">Player Area</a>
+        {% endif %}
+        <a class="btn btn-outline-success btn-sm" href="/public">Fan Site</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card p-3">
+      <h5 class="mb-3">Quick Stats</h5>
+
+      {% if stats and stats|length > 0 %}
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th style="width: 160px;">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for k, v in stats.items() %}
+              <tr>
+                <td>{{ k }}</td>
+                <td><strong>{{ v }}</strong></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-muted">No stats available.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

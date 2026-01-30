@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">Results</h3>
+  <a class="btn btn-outline-primary" href="/public">Back</a>
+</div>
+
+{% if results|length == 0 %}
+  <div class="alert alert-info">No results yet.</div>
+{% else %}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Match</th>
+          <th>Venue</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          <td>{{ r.match_date }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <!-- Your club -->
+              <img src="/static/img/logo.png" width="28" height="28" alt="Club Logo">
+              <strong>FCMS</strong>
+
+              <span class="mx-1">vs</span>
+
+              <!-- Opponent -->
+              {% if r.opponent_logo %}
+                <img src="/static/img/opponents/{{ r.opponent_logo }}" width="28" height="28" alt="Opponent Logo">
+              {% endif %}
+              {{ r.opponent }}
+            </div>
+          </td>
+          <td>{{ r.venue }}</td>
+          <td>
+            {% if r.home_score is not none and r.away_score is not none %}
+              {{ r.home_score }} - {{ r.away_score }}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+{% endblock %}

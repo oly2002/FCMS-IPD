@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="mb-3">{% if mode=="create" %}Create Fixture{% else %}Edit Fixture / Result{% endif %}</h3>
+
+<form method="post" class="card p-3" style="max-width: 900px;">
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label class="form-label">Match Date *</label>
+      <input class="form-control" type="date" name="match_date"
+             value="{{ item.match_date if item else '' }}" required>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Opponent *</label>
+      <input class="form-control" name="opponent" value="{{ item.opponent if item else '' }}" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Opponent Logo</label>
+        <select class="form-select" name="opponent_logo">
+          <option value="">-- Select logo --</option>
+          <option value="team1.png" {% if item and item.opponent_logo == "team1.png" %}selected{% endif %}>Team Logo 1</option>
+          <option value="team2.png" {% if item and item.opponent_logo == "team2.png" %}selected{% endif %}>Team Logo 2</option>
+          <option value="team3.png" {% if item and item.opponent_logo == "team3.png" %}selected{% endif %}>Team Logo 3</option>
+          <option value="team4.png" {% if item and item.opponent_logo == "team4.png" %}selected{% endif %}>Team Logo 4</option>
+        </select>
+    </div>
+
+
+    <div class="col-md-5">
+      <label class="form-label">Venue *</label>
+      <input class="form-control" name="venue" value="{{ item.venue if item else '' }}" required>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Competition</label>
+      <input class="form-control" name="competition" value="{{ item.competition if item else '' }}">
+    </div>
+
+    <div class="col-md-6 d-flex align-items-end">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="is_played"
+               {% if item and item.is_played %}checked{% endif %}>
+        <label class="form-check-label">Match played (enter scores)</label>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Home Score</label>
+      <input class="form-control" type="number" min="0" name="home_score"
+             value="{{ item.home_score if item and item.home_score is not none else '' }}">
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Away Score</label>
+      <input class="form-control" type="number" min="0" name="away_score"
+             value="{{ item.away_score if item and item.away_score is not none else '' }}">
+    </div>
+  </div>
+
+  <div class="mt-3 d-flex gap-2">
+    <button class="btn btn-success" type="submit">Save</button>
+    <a class="btn btn-secondary" href="/admin/fixtures">Cancel</a>
+  </div>
+
+  <div class="mt-2 text-muted small">
+    Tip: If you tick “Match played”, you must enter both scores. If you untick it, scores will be cleared and it becomes an upcoming fixture again.
+  </div>
+</form>
+
+{% endblock %}

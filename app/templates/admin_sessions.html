@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">Training Sessions</h3>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary" href="/admin/bookings">Bookings</a>
+    <a class="btn btn-outline-primary" href="/admin/reports">Reports</a>
+    <a class="btn btn-primary" href="/admin/sessions/create">+ Create Session</a>
+  </div>
+</div>
+
+
+{% if sessions|length == 0 %}
+  <div class="alert alert-info">No sessions yet. Create one.</div>
+{% else %}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Date</th>
+          <th>Start</th>
+          <th>Location</th>
+          <th>Capacity</th>
+          <th>Coach</th>
+          <th style="width: 170px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sessions %}
+        <tr>
+          <td>{{ s.title }}</td>
+          <td>{{ s.session_date }}</td>
+          <td>{{ s.start_time.strftime("%H:%M") }}</td>
+          <td>{{ s.location }}</td>
+          <td>{{ s.capacity }}</td>
+          <td>
+            {% if s.coach %}
+              {{ s.coach.full_name }}
+            {% else %}
+              <span class="text-muted">Not assigned</span>
+            {% endif %}
+          </td>
+          <td>
+            <a class="btn btn-sm btn-outline-secondary" href="/admin/sessions/{{ s.id }}/edit">Edit</a>
+            <form method="post" action="/admin/sessions/{{ s.id }}/delete" style="display:inline;">
+              <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this session?')">
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+{% endblock %}

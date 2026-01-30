@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">News</h3>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary" href="/admin/sessions">Sessions</a>
+    <a class="btn btn-outline-primary" href="/admin/fixtures">Fixtures</a>
+    <a class="btn btn-primary" href="/admin/news/create">+ Post News</a>
+  </div>
+</div>
+
+{% if items|length == 0 %}
+  <div class="alert alert-info">No news yet.</div>
+{% else %}
+  {% for n in items %}
+    <div class="card p-3 mb-3">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <h5 class="mb-1">{{ n.title }}</h5>
+          <div class="text-muted">{{ n.published_at.strftime("%Y-%m-%d %H:%M") }}</div>
+        </div>
+        <div class="d-flex gap-2">
+          <a class="btn btn-sm btn-outline-secondary" href="/admin/news/{{ n.id }}/edit">Edit</a>
+          <form method="post" action="/admin/news/{{ n.id }}/delete">
+            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this news post?')">
+              Delete
+            </button>
+          </form>
+        </div>
+      </div>
+      <hr>
+      <div>{{ n.body }}</div>
+    </div>
+  {% endfor %}
+{% endif %}
+
+{% endblock %}

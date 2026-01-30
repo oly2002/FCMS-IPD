@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="mb-3">Coach Dashboard</h3>
+
+{% if sessions|length == 0 %}
+  <div class="alert alert-info">
+    No sessions assigned to you yet. Ask admin to assign you to a session.
+  </div>
+{% else %}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Session</th>
+          <th>Date</th>
+          <th>Start</th>
+          <th>Location</th>
+          <th style="width: 180px;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sessions %}
+        <tr>
+          <td>{{ s.title }}</td>
+          <td>{{ s.session_date }}</td>
+          <td>{{ s.start_time.strftime("%H:%M") }}</td>
+          <td>{{ s.location }}</td>
+          <td>
+            <a class="btn btn-sm btn-primary" href="/coach/sessions/{{ s.id }}/attendance">
+              Mark Attendance
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="mb-3">Admin Dashboard</h3>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h5>Sessions</h5>
+      <p class="text-muted mb-2">Create, edit, delete sessions and assign coaches.</p>
+      <a class="btn btn-primary" href="/admin/sessions">Go to Sessions</a>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h5>Bookings</h5>
+      <p class="text-muted mb-2">View who booked what.</p>
+      <a class="btn btn-primary" href="/admin/bookings">View Bookings</a>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h5>Reports</h5>
+      <p class="text-muted mb-2">Bookings per session and attendance summary.</p>
+      <a class="btn btn-primary" href="/admin/reports">View Reports</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

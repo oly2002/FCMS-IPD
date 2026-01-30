@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">Reports</h3>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary" href="/admin/sessions">Sessions</a>
+    <a class="btn btn-outline-primary" href="/admin/bookings">Bookings</a>
+  </div>
+</div>
+
+<div class="card p-3 mb-4">
+  <h5>Bookings per Session (active)</h5>
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Session</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Booked</th>
+          <th>Capacity</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s, count in bookings_per_session %}
+        <tr>
+          <td>{{ s.title }}</td>
+          <td>{{ s.session_date }}</td>
+          <td>{{ s.start_time.strftime("%H:%M") }}</td>
+          <td>{{ count }}</td>
+          <td>{{ s.capacity }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card p-3">
+  <h5>Attendance Summary</h5>
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Session</th>
+          <th>Date</th>
+          <th>Present</th>
+          <th>Absent</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in attendance_summary %}
+        <tr>
+          <td>{{ row.title }}</td>
+          <td>{{ row.session_date }}</td>
+          <td>{{ row.present or 0 }}</td>
+          <td>{{ row.absent or 0 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">Attendance: {{ session.title }}</h3>
+  <a class="btn btn-outline-primary" href="/coach/">Back</a>
+</div>
+
+<p class="text-muted">
+  {{ session.session_date }} • {{ session.start_time.strftime("%H:%M") }} • {{ session.location }}
+</p>
+
+{% if bookings|length == 0 %}
+  <div class="alert alert-info">No players booked this session yet.</div>
+{% else %}
+  <form method="post" class="card p-3">
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th style="width: 240px;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bookings %}
+          {% set current = existing_map.get(b.player_id, "") %}
+          <tr>
+            <td>
+              {{ players[b.player_id].profile_emoji or "🙂" }}
+              {{ players[b.player_id].full_name if b.player_id in players else ("Player ID " ~ b.player_id) }}
+            </td>
+            <td>
+              <select class="form-select" name="att_{{ b.player_id }}">
+                <option value="" {% if current=="" %}selected{% endif %}>-- Not marked --</option>
+                <option value="present" {% if current=="present" %}selected{% endif %}>Present</option>
+                <option value="absent" {% if current=="absent" %}selected{% endif %}>Absent</option>
+              </select>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <button class="btn btn-success mt-2" type="submit">Save Attendance</button>
+  </form>
+{% endif %}
+
+{% endblock %}
