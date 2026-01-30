@@ -20,7 +20,12 @@ def create_app():
     host = os.getenv("DB_HOST", "localhost")
     name = os.getenv("DB_NAME")
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{user}:{pw}@{host}/{name}"
+    # Database configuration
+    if os.environ.get("USE_SQLITE") == "1":
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///fcms.db"
+    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{user}:{pw}@{host}/{name}"
+
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
