@@ -3,5 +3,23 @@ body
 footer a:hover {
   text-decoration: underline !important;
 }
+/* Landing page background */
+.landing-hero {
+  min-height: 70vh;
+  background-image: linear-gradient(
+      rgba(0, 0, 0, 0.55),
+      rgba(0, 0, 0, 0.55)
+    ),
+    url("/static/img/landing-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+}
 
  }
