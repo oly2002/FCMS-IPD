@@ -3,7 +3,8 @@
 
 <h3 class="mb-3">Register</h3>
 
-<form method="post" class="card p-3" style="max-width: 520px;">
+<form method="post" class="card p-3" style="max-width: 520px;" novalidate>
+
   <div class="mb-2">
     <label class="form-label">Full name</label>
     <input class="form-control" name="full_name" required>
@@ -11,24 +12,28 @@
 
   <div class="mb-2">
     <label class="form-label">Email</label>
-    <input class="form-control" name="email" type="email" required>
+    <input class="form-control" name="email" type="email" required pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$"
+      title="Please enter a valid email address (example: user@email.com)">
   </div>
-
   <div class="mb-2">
     <label class="form-label">Password</label>
-    <input class="form-control" name="password" type="password" required>
+    <input class="form-control" name="password" type="password" required minlength="8"
+      title="At least 8 characters, include uppercase, lowercase, number, and symbol">
+  </div>
+  <div class="form-text">
+    At least 8 characters, include uppercase, lowercase, number, and a symbol.
   </div>
 
+
+  <!-- Role (kept as-is for now) -->
   <div class="mb-2">
     <label class="form-label">Role</label>
-    <select class="form-select" name="role" id="role" required>
-      <option value="player">Player</option>
-      <option value="coach">Coach</option>
-      <option value="admin">Admin</option>
-    </select>
+    <input class="form-control" value="Player" disabled>
+    <input type="hidden" name="role" value="player">
   </div>
 
-  <!-- Emoji picker (shows only for Player) -->
+
+  <!-- Emoji picker (Player only) -->
   <div class="mb-2" id="emoji-box" style="display:none;">
     <label class="form-label">Profile Emoji</label>
     <select class="form-select" name="profile_emoji">
@@ -47,14 +52,14 @@
 <p class="mt-3"><a href="/login">Login</a></p>
 
 <script>
-  const roleSelect = document.getElementById('role');
-  const emojiBox = document.getElementById('emoji-box');
+  const roleSelect = document.getElementById("role");
+  const emojiBox = document.getElementById("emoji-box");
 
   function toggleEmoji() {
-    emojiBox.style.display = roleSelect.value === 'player' ? 'block' : 'none';
+    emojiBox.style.display = roleSelect.value === "player" ? "block" : "none";
   }
 
-  roleSelect.addEventListener('change', toggleEmoji);
+  roleSelect.addEventListener("change", toggleEmoji);
   toggleEmoji();
 </script>
 

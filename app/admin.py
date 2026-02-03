@@ -2,15 +2,15 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from functools import wraps
 from datetime import datetime
+import random
+
+from sqlalchemy import func, case
+
 from . import db
-from .models import User, Session
-from .models import Booking, Attendance
-from sqlalchemy import func
-from .models import News, Fixture
-
-
+from .models import User, Session, Booking, Attendance, News, Fixture
 
 admin_bp = Blueprint("admin", __name__)
+
 
 def role_required(*roles):
     def decorator(fn):
@@ -23,16 +23,19 @@ def role_required(*roles):
         return wrapper
     return decorator
 
+
 @admin_bp.route("/")
 @role_required("admin")
 def dashboard():
     return render_template("admin_dashboard.html")
+
 
 @admin_bp.route("/sessions")
 @role_required("admin")
 def sessions_list():
     sessions = Session.query.order_by(Session.session_date.asc(), Session.start_time.asc()).all()
     return render_template("admin_sessions.html", sessions=sessions)
+
 
 @admin_bp.route("/sessions/create", methods=["GET", "POST"])
 @role_required("admin")
@@ -48,7 +51,6 @@ def sessions_create():
         capacity_raw = request.form.get("capacity", "").strip()
         coach_id_raw = request.form.get("coach_id") or None
 
-        # basic validation
         if not session_date or not start_time or not location or not capacity_raw:
             flash("Please fill in date, start time, location, and capacity.", "danger")
             return redirect(url_for("admin.sessions_create"))
@@ -81,6 +83,7 @@ def sessions_create():
             return redirect(url_for("admin.sessions_create"))
 
     return render_template("admin_session_form.html", mode="create", session=None, coaches=coaches)
+
 
 @admin_bp.route("/sessions/<int:session_id>/edit", methods=["GET", "POST"])
 @role_required("admin")
@@ -128,6 +131,7 @@ def sessions_edit(session_id):
 
     return render_template("admin_session_form.html", mode="edit", session=s, coaches=coaches)
 
+
 @admin_bp.route("/sessions/<int:session_id>/delete", methods=["POST"])
 @role_required("admin")
 def sessions_delete(session_id):
@@ -141,11 +145,13 @@ def sessions_delete(session_id):
         flash("Could not delete session (it may have bookings).", "danger")
     return redirect(url_for("admin.sessions_list"))
 
+
 @admin_bp.route("/bookings")
 @role_required("admin")
 def bookings_list():
     bookings = Booking.query.order_by(Booking.booked_at.desc()).all()
     return render_template("admin_bookings.html", bookings=bookings)
+
 
 @admin_bp.route("/reports")
 @role_required("admin")
@@ -159,17 +165,18 @@ def reports():
         .all()
     )
 
-    # attendance summary per session
+    # attendance summary per session (FIXED: use sqlalchemy.case, not func.case)
     attendance_summary = (
         db.session.query(
             Session.id,
             Session.title,
             Session.session_date,
-            func.sum(func.case((Attendance.status == "present", 1), else_=0)).label("present"),
-            func.sum(func.case((Attendance.status == "absent", 1), else_=0)).label("absent"),
+            func.sum(case((Attendance.status == "present", 1), else_=0)).label("present"),
+            func.sum(case((Attendance.status == "absent", 1), else_=0)).label("absent"),
         )
         .outerjoin(Attendance, Attendance.session_id == Session.id)
-        .group_by(Session.id)
+        # safer group_by for MySQL strict mode
+        .group_by(Session.id, Session.title, Session.session_date, Session.start_time)
         .order_by(Session.session_date.asc(), Session.start_time.asc())
         .all()
     )
@@ -177,14 +184,16 @@ def reports():
     return render_template(
         "admin_reports.html",
         bookings_per_session=bookings_per_session,
-        attendance_summary=attendance_summary
+        attendance_summary=attendance_summary,
     )
+
 
 @admin_bp.route("/news")
 @role_required("admin")
 def news_list():
     items = News.query.order_by(News.published_at.desc()).all()
     return render_template("admin_news.html", items=items)
+
 
 @admin_bp.route("/news/create", methods=["GET", "POST"])
 @role_required("admin")
@@ -204,6 +213,7 @@ def news_create():
         return redirect(url_for("admin.news_list"))
 
     return render_template("admin_news_form.html", mode="create", item=None)
+
 
 @admin_bp.route("/news/<int:news_id>/edit", methods=["GET", "POST"])
 @role_required("admin")
@@ -226,6 +236,7 @@ def news_edit(news_id):
 
     return render_template("admin_news_form.html", mode="edit", item=n)
 
+
 @admin_bp.route("/news/<int:news_id>/delete", methods=["POST"])
 @role_required("admin")
 def news_delete(news_id):
@@ -235,11 +246,13 @@ def news_delete(news_id):
     flash("News deleted.", "success")
     return redirect(url_for("admin.news_list"))
 
+
 @admin_bp.route("/fixtures")
 @role_required("admin")
 def fixtures_list():
     fixtures = Fixture.query.order_by(Fixture.match_date.asc()).all()
     return render_template("admin_fixtures.html", fixtures=fixtures)
+
 
 @admin_bp.route("/fixtures/create", methods=["GET", "POST"])
 @role_required("admin")
@@ -259,7 +272,7 @@ def fixtures_create():
             opponent=opponent,
             venue=venue,
             competition=competition,
-            opponent_logo = request.form.get("opponent_logo") or None,
+            opponent_logo=request.form.get("opponent_logo") or None,
             is_played=False,
             home_score=None,
             away_score=None,
@@ -271,6 +284,7 @@ def fixtures_create():
 
     return render_template("admin_fixture_form.html", mode="create", item=None)
 
+
 @admin_bp.route("/fixtures/<int:fixture_id>/edit", methods=["GET", "POST"])
 @role_required("admin")
 def fixtures_edit(fixture_id):
@@ -281,8 +295,9 @@ def fixtures_edit(fixture_id):
         opponent = request.form.get("opponent", "").strip()
         venue = request.form.get("venue", "").strip()
         competition = request.form.get("competition", "").strip() or None
+
         f.opponent_logo = request.form.get("opponent_logo") or None
-        # Result fields
+
         is_played = True if request.form.get("is_played") == "on" else False
         home_score_raw = request.form.get("home_score", "").strip()
         away_score_raw = request.form.get("away_score", "").strip()
@@ -296,7 +311,6 @@ def fixtures_edit(fixture_id):
         f.venue = venue
         f.competition = competition
 
-        # If played, validate scores; if not played, clear scores.
         if is_played:
             try:
                 f.home_score = int(home_score_raw)
@@ -318,6 +332,7 @@ def fixtures_edit(fixture_id):
 
     return render_template("admin_fixture_form.html", mode="edit", item=f)
 
+
 @admin_bp.route("/fixtures/<int:fixture_id>/delete", methods=["POST"])
 @role_required("admin")
 def fixtures_delete(fixture_id):
@@ -326,3 +341,42 @@ def fixtures_delete(fixture_id):
     db.session.commit()
     flash("Fixture deleted.", "success")
     return redirect(url_for("admin.fixtures_list"))
+
+
+@admin_bp.route("/users/create", methods=["GET", "POST"])
+@role_required("admin")
+def create_user():
+    if request.method == "POST":
+        full_name = request.form.get("full_name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        role = request.form.get("role", "player")
+
+        if role not in ["player", "coach", "admin"]:
+            flash("Invalid role.", "danger")
+            return redirect(url_for("admin.create_user"))
+
+        if not full_name or not email or not password:
+            flash("All fields are required.", "danger")
+            return redirect(url_for("admin.create_user"))
+
+        if User.query.filter_by(email=email).first():
+            flash("Email already exists.", "danger")
+            return redirect(url_for("admin.create_user"))
+
+        ROLE_EMOJIS_LOCAL = {
+            "player": ["😀", "😎", "🤩", "🧑‍🦱", "🧔"],
+            "coach":  ["🧑‍🏫", "📋", "🧠", "🧑‍💼", "😤"],
+            "admin":  ["🛡️", "⚙️", "🧾", "🗂️", "👑"]
+        }
+        emoji = random.choice(ROLE_EMOJIS_LOCAL.get(role, ["🙂"]))
+
+        u = User(full_name=full_name, email=email, role=role, profile_emoji=emoji)
+        u.set_password(password)
+        db.session.add(u)
+        db.session.commit()
+
+        flash(f"{role.title()} account created.", "success")
+        return redirect(url_for("admin.dashboard"))
+
+    return render_template("admin_user_form.html")

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="mb-3">Create User (Admin Only)</h3>
+
+<form method="post" class="card p-3" style="max-width: 520px;">
+  <div class="mb-2">
+    <label class="form-label">Full name</label>
+    <input class="form-control" name="full_name" required>
+  </div>
+
+  <div class="mb-2">
+    <label class="form-label">Email</label>
+    <input class="form-control" name="email" type="email" required>
+  </div>
+
+  <div class="mb-2">
+    <label class="form-label">Password</label>
+    <input class="form-control" name="password" type="password" required>
+    <div class="form-text">Set a temporary password for the user.</div>
+  </div>
+
+  <div class="mb-2">
+    <label class="form-label">Role</label>
+    <select class="form-select" name="role" required>
+      <option value="player">Player</option>
+      <option value="coach">Coach</option>
+      <option value="admin">Admin</option>
+    </select>
+  </div>
+
+  <button class="btn btn-success mt-2" type="submit">Create user</button>
+  <a class="btn btn-secondary mt-2" href="/admin/">Cancel</a>
+</form>
+
+{% endblock %}
