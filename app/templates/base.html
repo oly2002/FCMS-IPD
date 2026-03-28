@@ -26,25 +26,37 @@
       <div class="collapse navbar-collapse" id="mainNav">
 
         <div class="navbar-nav me-auto">
-          <a class="nav-link" href="/public">Fan Site</a>
+          <a class="nav-link {% if request.path.startswith('/public') %}active{% endif %}" href="/public">Fan Site</a>
 
           {% if current_user.is_authenticated and current_user.role == "admin" %}
-          <a class="nav-link" href="/admin/sessions">Sessions</a>
-          <a class="nav-link" href="/admin/bookings">Bookings</a>
-          <a class="nav-link" href="/admin/reports">Reports</a>
-          <a class="nav-link" href="/admin/news">News</a>
-          <a class="nav-link" href="/admin/fixtures">Fixtures</a>
-          <a class="nav-link" href="/admin/users/create">Create User</a>
-          <a class="nav-link" href="/profile">Profile</a>
-
+          <a class="nav-link {% if request.path.startswith('/admin/sessions') %}active{% endif %}"
+            href="/admin/sessions">Sessions</a>
+          <a class="nav-link {% if request.path.startswith('/admin/bookings') %}active{% endif %}"
+            href="/admin/bookings">Bookings</a>
+          <a class="nav-link {% if request.path.startswith('/admin/reports') %}active{% endif %}"
+            href="/admin/reports">Reports</a>
+          <a class="nav-link {% if request.path.startswith('/admin/news') %}active{% endif %}"
+            href="/admin/news">News</a>
+          <a class="nav-link {% if request.path.startswith('/admin/fixtures') %}active{% endif %}"
+            href="/admin/fixtures">Fixtures</a>
+          <a class="nav-link {% if request.path.startswith('/admin/users/create') %}active{% endif %}"
+            href="/admin/users/create">Create User</a>
+          <a class="nav-link {% if request.path == '/profile' %}active{% endif %}" href="/profile">Profile</a>
+          <a class="nav-link {% if request.path.startswith('/admin/users') %}active{% endif %}" href="/admin/users">Users</a>
+          
           {% elif current_user.is_authenticated and current_user.role == "player" %}
-          <a class="nav-link" href="/player/sessions">Sessions</a>
-          <a class="nav-link" href="/player/bookings">My Bookings</a>
-          <a class="nav-link" href="/profile">Profile</a>
+          <a class="nav-link {% if request.path.startswith('/player/sessions') %}active{% endif %}"
+            href="/player/sessions">Sessions</a>
+          <a class="nav-link {% if request.path.startswith('/player/bookings') %}active{% endif %}"
+            href="/player/bookings">My Bookings</a>
+          <a class="nav-link {% if request.path == '/profile' %}active{% endif %}" href="/profile">Profile</a>
 
           {% elif current_user.is_authenticated and current_user.role == "coach" %}
-          <a class="nav-link" href="/coach/">My Sessions</a>
-          <a class="nav-link" href="/profile">Profile</a>
+          <a class="nav-link {% if request.path == '/coach/' or request.path.startswith('/coach/sessions') %}active{% endif %}"
+            href="/coach/">My Sessions</a>
+          <a class="nav-link {% if request.path.startswith('/coach/reports') %}active{% endif %}"
+            href="/coach/reports">Reports</a>
+          <a class="nav-link {% if request.path == '/profile' %}active{% endif %}" href="/profile">Profile</a>
           {% endif %}
         </div>
 

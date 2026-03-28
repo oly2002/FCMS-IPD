@@ -1,15 +1,19 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, current_app
 from flask_login import login_required, current_user
 from functools import wraps
 from datetime import datetime
-import random
+import os
+import uuid
 
 from sqlalchemy import func, case
+from werkzeug.utils import secure_filename
 
 from . import db
 from .models import User, Session, Booking, Attendance, News, Fixture
 
 admin_bp = Blueprint("admin", __name__)
+
+ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 
 
 def role_required(*roles):
@@ -22,6 +26,29 @@ def role_required(*roles):
             return fn(*args, **kwargs)
         return wrapper
     return decorator
+
+
+def allowed_image(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
+
+
+def save_poster_file(file):
+    if not file or not file.filename:
+        return None
+
+    if not allowed_image(file.filename):
+        return None
+
+    ext = file.filename.rsplit(".", 1)[1].lower()
+    filename = f"{uuid.uuid4().hex}.{ext}"
+
+    upload_folder = os.path.join(current_app.root_path, "static", "uploads", "posters")
+    os.makedirs(upload_folder, exist_ok=True)
+
+    filepath = os.path.join(upload_folder, secure_filename(filename))
+    file.save(filepath)
+
+    return filename
 
 
 @admin_bp.route("/")
@@ -156,7 +183,6 @@ def bookings_list():
 @admin_bp.route("/reports")
 @role_required("admin")
 def reports():
-    # bookings per session (only active booked)
     bookings_per_session = (
         db.session.query(Session, func.count(Booking.id))
         .outerjoin(Booking, (Booking.session_id == Session.id) & (Booking.status == "booked"))
@@ -165,7 +191,6 @@ def reports():
         .all()
     )
 
-    # attendance summary per session (FIXED: use sqlalchemy.case, not func.case)
     attendance_summary = (
         db.session.query(
             Session.id,
@@ -175,18 +200,32 @@ def reports():
             func.sum(case((Attendance.status == "absent", 1), else_=0)).label("absent"),
         )
         .outerjoin(Attendance, Attendance.session_id == Session.id)
-        # safer group_by for MySQL strict mode
         .group_by(Session.id, Session.title, Session.session_date, Session.start_time)
         .order_by(Session.session_date.asc(), Session.start_time.asc())
         .all()
     )
 
+    # Chart data
+    booking_labels = [f"{s.title} ({s.session_date})" for s, count in bookings_per_session]
+    booking_values = [count for s, count in bookings_per_session]
+
+    total_present = sum((row.present or 0) for row in attendance_summary)
+    total_absent = sum((row.absent or 0) for row in attendance_summary)
+
+    total_sessions = Session.query.count()
+    total_bookings = Booking.query.filter_by(status="booked").count()
+
     return render_template(
         "admin_reports.html",
         bookings_per_session=bookings_per_session,
         attendance_summary=attendance_summary,
+        booking_labels=booking_labels,
+        booking_values=booking_values,
+        total_present=total_present,
+        total_absent=total_absent,
+        total_sessions=total_sessions,
+        total_bookings=total_bookings,
     )
-
 
 @admin_bp.route("/news")
 @role_required("admin")
@@ -262,17 +301,28 @@ def fixtures_create():
         opponent = request.form.get("opponent", "").strip()
         venue = request.form.get("venue", "").strip()
         competition = request.form.get("competition", "").strip() or None
+        opponent_logo = request.form.get("opponent_logo") or None
 
         if not match_date or not opponent or not venue:
             flash("Date, opponent, and venue are required.", "danger")
             return redirect(url_for("admin.fixtures_create"))
+
+        poster_file = request.files.get("poster_image")
+        poster_filename = None
+
+        if poster_file and poster_file.filename:
+            if not allowed_image(poster_file.filename):
+                flash("Poster image must be PNG, JPG, JPEG, or WEBP.", "danger")
+                return redirect(url_for("admin.fixtures_create"))
+            poster_filename = save_poster_file(poster_file)
 
         f = Fixture(
             match_date=datetime.strptime(match_date, "%Y-%m-%d").date(),
             opponent=opponent,
             venue=venue,
             competition=competition,
-            opponent_logo=request.form.get("opponent_logo") or None,
+            opponent_logo=opponent_logo,
+            poster_image=poster_filename,
             is_played=False,
             home_score=None,
             away_score=None,
@@ -295,12 +345,7 @@ def fixtures_edit(fixture_id):
         opponent = request.form.get("opponent", "").strip()
         venue = request.form.get("venue", "").strip()
         competition = request.form.get("competition", "").strip() or None
-
-        f.opponent_logo = request.form.get("opponent_logo") or None
-
-        is_played = True if request.form.get("is_played") == "on" else False
-        home_score_raw = request.form.get("home_score", "").strip()
-        away_score_raw = request.form.get("away_score", "").strip()
+        opponent_logo = request.form.get("opponent_logo") or None
 
         if not match_date or not opponent or not venue:
             flash("Date, opponent, and venue are required.", "danger")
@@ -310,6 +355,20 @@ def fixtures_edit(fixture_id):
         f.opponent = opponent
         f.venue = venue
         f.competition = competition
+        f.opponent_logo = opponent_logo
+
+        poster_file = request.files.get("poster_image")
+        if poster_file and poster_file.filename:
+            if not allowed_image(poster_file.filename):
+                flash("Poster image must be PNG, JPG, JPEG, or WEBP.", "danger")
+                return redirect(url_for("admin.fixtures_edit", fixture_id=fixture_id))
+            new_filename = save_poster_file(poster_file)
+            if new_filename:
+                f.poster_image = new_filename
+
+        is_played = True if request.form.get("is_played") == "on" else False
+        home_score_raw = request.form.get("home_score", "").strip()
+        away_score_raw = request.form.get("away_score", "").strip()
 
         if is_played:
             try:
@@ -364,14 +423,12 @@ def create_user():
             flash("Email already exists.", "danger")
             return redirect(url_for("admin.create_user"))
 
-        ROLE_EMOJIS_LOCAL = {
-            "player": ["😀", "😎", "🤩", "🧑‍🦱", "🧔"],
-            "coach":  ["🧑‍🏫", "📋", "🧠", "🧑‍💼", "😤"],
-            "admin":  ["🛡️", "⚙️", "🧾", "🗂️", "👑"]
-        }
-        emoji = random.choice(ROLE_EMOJIS_LOCAL.get(role, ["🙂"]))
-
-        u = User(full_name=full_name, email=email, role=role, profile_emoji=emoji)
+        u = User(
+            full_name=full_name,
+            email=email,
+            role=role,
+            profile_photo=None
+        )
         u.set_password(password)
         db.session.add(u)
         db.session.commit()
@@ -380,3 +437,70 @@ def create_user():
         return redirect(url_for("admin.dashboard"))
 
     return render_template("admin_user_form.html")
+
+@admin_bp.route("/users")
+@role_required("admin")
+def users_list():
+    players = User.query.filter_by(role="player").order_by(User.full_name.asc()).all()
+    coaches = User.query.filter_by(role="coach").order_by(User.full_name.asc()).all()
+    admins = User.query.filter_by(role="admin").order_by(User.full_name.asc()).all()
+
+    return render_template(
+        "admin_users.html",
+        players=players,
+        coaches=coaches,
+        admins=admins
+    )
+
+@admin_bp.route("/users/<int:user_id>/edit", methods=["GET", "POST"])
+@role_required("admin")
+def edit_user(user_id):
+    user = User.query.get_or_404(user_id)
+
+    if request.method == "POST":
+        full_name = request.form.get("full_name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        role = request.form.get("role", "player")
+
+        if role not in ["player", "coach", "admin"]:
+            flash("Invalid role.", "danger")
+            return redirect(url_for("admin.edit_user", user_id=user.id))
+
+        if not full_name or not email:
+            flash("Full name and email are required.", "danger")
+            return redirect(url_for("admin.edit_user", user_id=user.id))
+
+        existing = User.query.filter(User.email == email, User.id != user.id).first()
+        if existing:
+            flash("Another user already uses that email.", "danger")
+            return redirect(url_for("admin.edit_user", user_id=user.id))
+
+        user.full_name = full_name
+        user.email = email
+        user.role = role
+
+        db.session.commit()
+        flash("User updated successfully.", "success")
+        return redirect(url_for("admin.users_list"))
+
+    return render_template("admin_user_edit.html", user=user)
+
+
+@admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
+@role_required("admin")
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+
+    if user.id == current_user.id:
+        flash("You cannot delete your own account while logged in.", "danger")
+        return redirect(url_for("admin.users_list"))
+
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        flash("User deleted successfully.", "success")
+    except Exception:
+        db.session.rollback()
+        flash("Could not delete user. They may be linked to bookings, sessions, or attendance.", "danger")
+
+    return redirect(url_for("admin.users_list"))

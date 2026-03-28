@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">Users</h3>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary" href="/admin/users/create">Create User</a>
+    <a class="btn btn-outline-secondary" href="/admin/">Dashboard</a>
+  </div>
+</div>
+
+<!-- Players -->
+<div class="card p-3 mb-4">
+  <h5 class="mb-3">Players</h5>
+
+  {% if players|length == 0 %}
+  <div class="alert alert-info mb-0">No player accounts found.</div>
+  {% else %}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th style="width: 90px;">Photo</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th style="width: 180px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in players %}
+        <tr>
+          <td>
+            {% if user.profile_photo %}
+            <img src="{{ url_for('static', filename='uploads/profiles/' ~ user.profile_photo) }}" alt="Profile Photo"
+              width="50" height="50" class="rounded-circle border" style="object-fit: cover;">
+            {% else %}
+            <img src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default Profile" width="50"
+              height="50" class="rounded-circle border" style="object-fit: cover;">
+            {% endif %}
+          </td>
+          <td>{{ user.full_name }}</td>
+          <td>{{ user.email }}</td>
+          <td><span class="badge bg-primary text-uppercase">{{ user.role }}</span></td>
+          <td>
+            <div class="d-flex gap-2">
+              <a class="btn btn-sm btn-outline-secondary" href="/admin/users/{{ user.id }}/edit">Edit</a>
+
+              <form method="post" action="/admin/users/{{ user.id }}/delete" style="display:inline;">
+                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this user account?')">
+                  Delete
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Coaches -->
+<div class="card p-3 mb-4">
+  <h5 class="mb-3">Coaches</h5>
+
+  {% if coaches|length == 0 %}
+  <div class="alert alert-info mb-0">No coach accounts found.</div>
+  {% else %}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th style="width: 90px;">Photo</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th style="width: 180px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in coaches %}
+        <tr>
+          <td>
+            {% if user.profile_photo %}
+            <img src="{{ url_for('static', filename='uploads/profiles/' ~ user.profile_photo) }}" alt="Profile Photo"
+              width="50" height="50" class="rounded-circle border" style="object-fit: cover;">
+            {% else %}
+            <img src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default Profile" width="50"
+              height="50" class="rounded-circle border" style="object-fit: cover;">
+            {% endif %}
+          </td>
+          <td>{{ user.full_name }}</td>
+          <td>{{ user.email }}</td>
+          <td><span class="badge bg-success text-uppercase">{{ user.role }}</span></td>
+          <td>
+            <div class="d-flex gap-2">
+              <a class="btn btn-sm btn-outline-secondary" href="/admin/users/{{ user.id }}/edit">Edit</a>
+
+              <form method="post" action="/admin/users/{{ user.id }}/delete" style="display:inline;">
+                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this user account?')">
+                  Delete
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Admins -->
+<div class="card p-3">
+  <h5 class="mb-3">Admins</h5>
+
+  {% if admins|length == 0 %}
+  <div class="alert alert-info mb-0">No admin accounts found.</div>
+  {% else %}
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th style="width: 90px;">Photo</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th style="width: 180px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in admins %}
+        <tr>
+          <td>
+            {% if user.profile_photo %}
+            <img src="{{ url_for('static', filename='uploads/profiles/' ~ user.profile_photo) }}" alt="Profile Photo"
+              width="50" height="50" class="rounded-circle border" style="object-fit: cover;">
+            {% else %}
+            <img src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default Profile" width="50"
+              height="50" class="rounded-circle border" style="object-fit: cover;">
+            {% endif %}
+          </td>
+          <td>{{ user.full_name }}</td>
+          <td>{{ user.email }}</td>
+          <td><span class="badge bg-dark text-uppercase">{{ user.role }}</span></td>
+          <td>
+            <div class="d-flex gap-2">
+              <a class="btn btn-sm btn-outline-secondary" href="/admin/users/{{ user.id }}/edit">Edit</a>
+
+              <form method="post" action="/admin/users/{{ user.id }}/delete" style="display:inline;">
+                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this user account?')">
+                  Delete
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from functools import wraps
+from sqlalchemy import func, case
+from .models import Session, Booking, Attendance
 from . import db
 from .models import Session, Booking, Attendance, User
 
@@ -25,6 +27,48 @@ def dashboard():
     ).all()
     return render_template("coach_dashboard.html", sessions=sessions)
 
+@coach_bp.route("/reports")
+@role_required("coach")
+def reports():
+    bookings_per_session = (
+        db.session.query(Session, func.count(Booking.id))
+        .outerjoin(Booking, (Booking.session_id == Session.id) & (Booking.status == "booked"))
+        .filter(Session.coach_id == current_user.id)
+        .group_by(Session.id, Session.title, Session.session_date, Session.start_time)
+        .order_by(Session.session_date.asc(), Session.start_time.asc())
+        .all()
+    )
+
+    attendance_summary = (
+        db.session.query(
+            Session.id,
+            Session.title,
+            Session.session_date,
+            func.sum(case((Attendance.status == "present", 1), else_=0)).label("present"),
+            func.sum(case((Attendance.status == "absent", 1), else_=0)).label("absent"),
+        )
+        .outerjoin(Attendance, Attendance.session_id == Session.id)
+        .filter(Session.coach_id == current_user.id)
+        .group_by(Session.id, Session.title, Session.session_date, Session.start_time)
+        .order_by(Session.session_date.asc(), Session.start_time.asc())
+        .all()
+    )
+
+    booking_labels = [f"{s.title} ({s.session_date})" for s, count in bookings_per_session]
+    booking_values = [count for s, count in bookings_per_session]
+
+    total_present = sum((row.present or 0) for row in attendance_summary)
+    total_absent = sum((row.absent or 0) for row in attendance_summary)
+
+    return render_template(
+        "coach_reports.html",
+        bookings_per_session=bookings_per_session,
+        attendance_summary=attendance_summary,
+        booking_labels=booking_labels,
+        booking_values=booking_values,
+        total_present=total_present,
+        total_absent=total_absent,
+    )
 @coach_bp.route("/sessions/<int:session_id>/attendance", methods=["GET", "POST"])
 @role_required("coach")
 def attendance(session_id):

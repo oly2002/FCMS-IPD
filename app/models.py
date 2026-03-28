@@ -78,6 +78,7 @@ class Fixture(db.Model):
     opponent = db.Column(db.String(120), nullable=False)
     venue = db.Column(db.String(200), nullable=False)  # e.g. Home/Away or Stadium
     competition = db.Column(db.String(120), nullable=True)
+    poster_image = db.Column(db.String(255), nullable=True)
     
     # result fields (optional)
     opponent_logo = db.Column(db.String(120), nullable=True)

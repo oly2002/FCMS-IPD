@@ -13,6 +13,38 @@
   </div>
 </div>
 
+<!-- Featured Fixture Posters -->
+<div class="card p-3 mb-3">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0">Featured Fixtures</h5>
+    <a href="/public/fixtures">View all</a>
+  </div>
+
+  {% set posters = upcoming | selectattr("poster_image") | list %}
+  {% if posters|length == 0 %}
+    <div class="text-muted">No fixture posters available yet.</div>
+  {% else %}
+    <div class="row g-3">
+      {% for f in posters[:3] %}
+      <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+          <img
+            src="{{ url_for('static', filename='uploads/posters/' ~ f.poster_image) }}"
+            class="card-img-top"
+            alt="Fixture Poster"
+            style="height: 320px; object-fit: cover;"
+          >
+          <div class="card-body text-center">
+            <h6 class="mb-1">Tower East FC vs {{ f.opponent }}</h6>
+            <div class="text-muted small">{{ f.match_date }} • {{ f.venue }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
 <div class="row g-3">
 
   <!-- Latest News -->
