@@ -27,7 +27,6 @@
       <tbody>
         {% for b in bookings %}
         <tr>
-          <td>{{ b.player.profile_emoji or "🙂" }}</td>
           <td>{{ b.player.full_name }}</td>
           <td>{{ b.session.title }}</td>
           <td>{{ b.session.session_date }}</td>

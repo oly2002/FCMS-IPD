@@ -14,7 +14,9 @@ def create_app():
     app = Flask(__name__)
 
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev")
-
+    app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "uploads", "profiles")
+    app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2MB max
+    
     user = os.getenv("DB_USER")
     pw = os.getenv("DB_PASS")
     host = os.getenv("DB_HOST", "localhost")

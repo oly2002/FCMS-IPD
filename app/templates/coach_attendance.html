@@ -27,7 +27,6 @@
           {% set current = existing_map.get(b.player_id, "") %}
           <tr>
             <td>
-              {{ players[b.player_id].profile_emoji or "🙂" }}
               {{ players[b.player_id].full_name if b.player_id in players else ("Player ID " ~ b.player_id) }}
             </td>
             <td>

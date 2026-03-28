@@ -1,22 +1,24 @@
-import random
+import os
 import re
+import uuid
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, current_user, login_required
+from werkzeug.utils import secure_filename
 
 from . import db
 from .models import User, Booking, Session, Fixture, News
 
 auth_bp = Blueprint("auth", __name__)
 
-ROLE_EMOJIS = {
-    "player": ["😀", "😎", "🤩", "👦", "👧", "🧑‍🦱", "🧔"],
-    "coach":  ["🧑‍🏫", "📋", "🧠", "🧑‍💼", "😤"],
-    "admin":  ["🛡️", "⚙️", "🧾", "🗂️", "👑"]
-}
-
 EMAIL_REGEX = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 PASSWORD_REGEX = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$"
+
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @auth_bp.route("/")
@@ -37,42 +39,30 @@ def register():
         full_name = request.form.get("full_name", "").strip()
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
-        role = "player"
-        chosen_emoji = request.form.get("profile_emoji")
+        role = "player"  # public registration locked to player only
 
-        # role safety (keeps your current behavior)
-        if role not in ["player", "coach", "admin"]:
-            role = "player"
-
-        # required fields
         if not full_name or not email or not password:
             flash("All fields are required.", "danger")
             return redirect(url_for("auth.register"))
 
-        # email format validation
         if not re.match(EMAIL_REGEX, email):
             flash("Please enter a valid email address.", "danger")
             return redirect(url_for("auth.register"))
 
-        # password validation (simple IPD-friendly rule)
         if not re.match(PASSWORD_REGEX, password):
-          flash("Password must be at least 8 characters and include: uppercase, lowercase, number, and symbol.", "danger")
-          return redirect(url_for("auth.register"))
+            flash("Password must be at least 8 characters and include: uppercase, lowercase, number, and symbol.", "danger")
+            return redirect(url_for("auth.register"))
 
-
-        # unique email
         if User.query.filter_by(email=email).first():
             flash("Email already registered.", "danger")
             return redirect(url_for("auth.register"))
 
-        # emoji assignment
-        if role == "player":
-            emoji = chosen_emoji if chosen_emoji else random.choice(ROLE_EMOJIS["player"])
-        else:
-            emoji = random.choice(ROLE_EMOJIS.get(role, ["🙂"]))
-
-        # create user
-        u = User(full_name=full_name, email=email, role=role, profile_emoji=emoji)
+        u = User(
+            full_name=full_name,
+            email=email,
+            role=role,
+            profile_photo=None
+        )
         u.set_password(password)
 
         db.session.add(u)
@@ -90,7 +80,6 @@ def login():
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
 
-        # email format validation (cleaner feedback)
         if not re.match(EMAIL_REGEX, email):
             flash("Please enter a valid email address.", "danger")
             return redirect(url_for("auth.login"))
@@ -148,3 +137,32 @@ def profile():
         stats["Total fixtures"] = Fixture.query.count()
 
     return render_template("profile.html", stats=stats)
+
+
+@auth_bp.route("/profile/photo", methods=["POST"])
+@login_required
+def upload_profile_photo():
+    file = request.files.get("profile_photo")
+
+    if not file or file.filename == "":
+        flash("Please choose an image to upload.", "danger")
+        return redirect(url_for("auth.profile"))
+
+    if not allowed_file(file.filename):
+        flash("Only PNG, JPG, JPEG, and WEBP files are allowed.", "danger")
+        return redirect(url_for("auth.profile"))
+
+    upload_folder = current_app.config["UPLOAD_FOLDER"]
+    os.makedirs(upload_folder, exist_ok=True)
+
+    ext = file.filename.rsplit(".", 1)[1].lower()
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    filepath = os.path.join(upload_folder, secure_filename(filename))
+
+    file.save(filepath)
+
+    current_user.profile_photo = filename
+    db.session.commit()
+
+    flash("Profile photo updated.", "success")
+    return redirect(url_for("auth.profile"))
