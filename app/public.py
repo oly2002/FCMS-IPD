@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template
-from .models import News, Fixture
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from . import db
+from .models import News, Fixture, ContactMessage
 
 public_bp = Blueprint("public", __name__)
 
@@ -30,3 +31,23 @@ def fixtures_list():
 def results_list():
     results = Fixture.query.filter_by(is_played=True).order_by(Fixture.match_date.desc()).all()
     return render_template("public_results.html", results=results)
+
+@public_bp.route("/contact", methods=["GET", "POST"])
+def contact():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        message = request.form.get("message", "").strip()
+
+        if not name or not email or not message:
+            flash("All fields are required.", "danger")
+            return redirect(url_for("public.contact"))
+
+        msg = ContactMessage(name=name, email=email, message=message)
+        db.session.add(msg)
+        db.session.commit()
+
+        flash("Your message has been sent to the club.", "success")
+        return redirect(url_for("public.contact"))
+
+    return render_template("contact.html")

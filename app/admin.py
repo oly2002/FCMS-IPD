@@ -9,7 +9,7 @@ from sqlalchemy import func, case
 from werkzeug.utils import secure_filename
 
 from . import db
-from .models import User, Session, Booking, Attendance, News, Fixture
+from .models import User, Session, Booking, Attendance, News, Fixture, ContactMessage
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -437,6 +437,12 @@ def create_user():
         return redirect(url_for("admin.dashboard"))
 
     return render_template("admin_user_form.html")
+
+@admin_bp.route("/messages")
+@role_required("admin")
+def messages_list():
+    messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
+    return render_template("admin_messages.html", messages=messages)
 
 @admin_bp.route("/users")
 @role_required("admin")

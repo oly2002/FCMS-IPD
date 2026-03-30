@@ -27,6 +27,7 @@
 
         <div class="navbar-nav me-auto">
           <a class="nav-link {% if request.path.startswith('/public') %}active{% endif %}" href="/public">Fan Site</a>
+          <a class="nav-link {% if request.path.startswith('/contact') %}active{% endif %}" href="/contact">Contact</a>
 
           {% if current_user.is_authenticated and current_user.role == "admin" %}
           <a class="nav-link {% if request.path.startswith('/admin/sessions') %}active{% endif %}"
@@ -39,11 +40,15 @@
             href="/admin/news">News</a>
           <a class="nav-link {% if request.path.startswith('/admin/fixtures') %}active{% endif %}"
             href="/admin/fixtures">Fixtures</a>
+          <a class="nav-link {% if request.path.startswith('/admin/messages') %}active{% endif %}"
+            href="/admin/messages">Messages</a>
           <a class="nav-link {% if request.path.startswith('/admin/users/create') %}active{% endif %}"
             href="/admin/users/create">Create User</a>
+          <a class="nav-link {% if request.path.startswith('/admin/users') %}active{% endif %}"
+            href="/admin/users">Users</a>
           <a class="nav-link {% if request.path == '/profile' %}active{% endif %}" href="/profile">Profile</a>
-          <a class="nav-link {% if request.path.startswith('/admin/users') %}active{% endif %}" href="/admin/users">Users</a>
           
+
           {% elif current_user.is_authenticated and current_user.role == "player" %}
           <a class="nav-link {% if request.path.startswith('/player/sessions') %}active{% endif %}"
             href="/player/sessions">Sessions</a>
