@@ -43,8 +43,12 @@
           <td>{{ user.email }}</td>
           <td><span class="badge bg-primary text-uppercase">{{ user.role }}</span></td>
           <td>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
               <a class="btn btn-sm btn-outline-secondary" href="/admin/users/{{ user.id }}/edit">Edit</a>
+
+              <a class="btn btn-sm btn-outline-warning" href="/admin/users/{{ user.id }}/reset-password">
+                Reset Password
+              </a>
 
               <form method="post" action="/admin/users/{{ user.id }}/delete" style="display:inline;">
                 <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this user account?')">
@@ -95,8 +99,12 @@
           <td>{{ user.email }}</td>
           <td><span class="badge bg-success text-uppercase">{{ user.role }}</span></td>
           <td>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
               <a class="btn btn-sm btn-outline-secondary" href="/admin/users/{{ user.id }}/edit">Edit</a>
+
+              <a class="btn btn-sm btn-outline-warning" href="/admin/users/{{ user.id }}/reset-password">
+                Reset Password
+              </a>
 
               <form method="post" action="/admin/users/{{ user.id }}/delete" style="display:inline;">
                 <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this user account?')">
@@ -147,8 +155,12 @@
           <td>{{ user.email }}</td>
           <td><span class="badge bg-dark text-uppercase">{{ user.role }}</span></td>
           <td>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
               <a class="btn btn-sm btn-outline-secondary" href="/admin/users/{{ user.id }}/edit">Edit</a>
+
+              <a class="btn btn-sm btn-outline-warning" href="/admin/users/{{ user.id }}/reset-password">
+                Reset Password
+              </a>
 
               <form method="post" action="/admin/users/{{ user.id }}/delete" style="display:inline;">
                 <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this user account?')">

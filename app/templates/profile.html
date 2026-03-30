@@ -14,17 +14,11 @@
       <div class="d-flex align-items-center gap-3">
         <div>
           {% if current_user.profile_photo %}
-            <img src="{{ url_for('static', filename='uploads/profiles/' ~ current_user.profile_photo) }}"
-                 alt="Profile Photo"
-                 width="90" height="90"
-                 class="rounded-circle border"
-                 style="object-fit: cover;">
+          <img src="{{ url_for('static', filename='uploads/profiles/' ~ current_user.profile_photo) }}"
+            alt="Profile Photo" width="90" height="90" class="rounded-circle border" style="object-fit: cover;">
           {% else %}
-            <img src="{{ url_for('static', filename='img/default-profile.png') }}"
-                 alt="Default Profile"
-                 width="90" height="90"
-                 class="rounded-circle border"
-                 style="object-fit: cover;">
+          <img src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default Profile" width="90"
+            height="90" class="rounded-circle border" style="object-fit: cover;">
           {% endif %}
         </div>
 
@@ -32,6 +26,13 @@
           <div class="h5 mb-1">{{ current_user.full_name }}</div>
           <div class="text-muted">{{ current_user.email }}</div>
           <span class="badge bg-dark mt-2 text-uppercase">{{ current_user.role }}</span>
+        </div>
+      </div>
+      <div class="alert alert-info mt-3 d-flex align-items-start gap-2">
+        <div>ℹ️</div>
+        <div>
+          <strong>Account updates</strong><br>
+          To change your profile details or reset your password, please contact the club administrator.
         </div>
       </div>
 
@@ -49,11 +50,11 @@
 
       <div class="d-flex gap-2 flex-wrap">
         {% if current_user.role == "admin" %}
-          <a class="btn btn-outline-primary btn-sm" href="/admin/sessions">Admin Area</a>
+        <a class="btn btn-outline-primary btn-sm" href="/admin/sessions">Admin Area</a>
         {% elif current_user.role == "coach" %}
-          <a class="btn btn-outline-primary btn-sm" href="/coach/">Coach Area</a>
+        <a class="btn btn-outline-primary btn-sm" href="/coach/">Coach Area</a>
         {% else %}
-          <a class="btn btn-outline-primary btn-sm" href="/player/sessions">Player Area</a>
+        <a class="btn btn-outline-primary btn-sm" href="/player/sessions">Player Area</a>
         {% endif %}
         <a class="btn btn-outline-success btn-sm" href="/public">Fan Site</a>
       </div>
@@ -65,26 +66,26 @@
       <h5 class="mb-3">Quick Stats</h5>
 
       {% if stats and stats|length > 0 %}
-        <div class="table-responsive">
-          <table class="table table-striped align-middle mb-0">
-            <thead>
-              <tr>
-                <th>Metric</th>
-                <th style="width: 160px;">Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for k, v in stats.items() %}
-              <tr>
-                <td>{{ k }}</td>
-                <td><strong>{{ v }}</strong></td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+      <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th style="width: 160px;">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for k, v in stats.items() %}
+            <tr>
+              <td>{{ k }}</td>
+              <td><strong>{{ v }}</strong></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
       {% else %}
-        <div class="text-muted">No stats available.</div>
+      <div class="text-muted">No stats available.</div>
       {% endif %}
     </div>
   </div>

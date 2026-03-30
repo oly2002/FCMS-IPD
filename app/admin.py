@@ -504,3 +504,32 @@ def delete_user(user_id):
         flash("Could not delete user. They may be linked to bookings, sessions, or attendance.", "danger")
 
     return redirect(url_for("admin.users_list"))
+
+@admin_bp.route("/users/<int:user_id>/reset-password", methods=["GET", "POST"])
+@role_required("admin")
+def reset_password(user_id):
+    user = User.query.get_or_404(user_id)
+
+    if request.method == "POST":
+        new_password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if not new_password or not confirm_password:
+            flash("Both password fields are required.", "danger")
+            return redirect(url_for("admin.reset_password", user_id=user.id))
+
+        if new_password != confirm_password:
+            flash("Passwords do not match.", "danger")
+            return redirect(url_for("admin.reset_password", user_id=user.id))
+
+        if len(new_password) < 8:
+            flash("Password must be at least 8 characters long.", "danger")
+            return redirect(url_for("admin.reset_password", user_id=user.id))
+
+        user.set_password(new_password)
+        db.session.commit()
+
+        flash("Password reset successfully.", "success")
+        return redirect(url_for("admin.users_list"))
+
+    return render_template("admin_reset_password.html", user=user)
