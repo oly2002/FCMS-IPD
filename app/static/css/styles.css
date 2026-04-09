@@ -37,3 +37,57 @@ footer a:hover {
   color: #ffffff !important;
   border-bottom: 2px solid #ffc107;
 }
+
+
+/* Chatbot */
+#chatbot-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1050;
+}
+
+#chatbot-toggle {
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+}
+
+#chatbot-box {
+  width: 320px;
+  max-height: 450px;
+  overflow: hidden;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+#chatbot-messages {
+  height: 280px;
+  overflow-y: auto;
+  background: #f8f9fa;
+  font-size: 14px;
+}
+
+.bot-message,
+.user-message {
+  padding: 10px 12px;
+  border-radius: 10px;
+  max-width: 85%;
+}
+
+.bot-message {
+  background: #e9ecef;
+  color: #212529;
+}
+
+.user-message {
+  background: #0d6efd;
+  color: white;
+  margin-left: auto;
+  text-align: right;
+}
+
+#chatbot-input {
+  font-size: 14px;
+}

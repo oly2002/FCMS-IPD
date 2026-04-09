@@ -44,10 +44,11 @@
             href="/admin/messages">Messages</a>
           <a class="nav-link {% if request.path.startswith('/admin/users/create') %}active{% endif %}"
             href="/admin/users/create">Create User</a>
+
           <a class="nav-link {% if request.path.startswith('/admin/users') %}active{% endif %}"
             href="/admin/users">Users</a>
           <a class="nav-link {% if request.path == '/profile' %}active{% endif %}" href="/profile">Profile</a>
-          
+
 
           {% elif current_user.is_authenticated and current_user.role == "player" %}
           <a class="nav-link {% if request.path.startswith('/player/sessions') %}active{% endif %}"
@@ -151,6 +152,127 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  {% if request.path == '/' or request.path.startswith('/public') or request.path.startswith('/contact') %}
+  <!-- Club Assistant Chatbot -->
+  <div id="chatbot-container">
+    <button id="chatbot-toggle" class="btn btn-primary rounded-circle">💬</button>
+
+    <div id="chatbot-box" class="card shadow" style="display: none;">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Club Assistant</strong>
+        <button id="chatbot-close" class="btn btn-sm btn-outline-secondary">×</button>
+      </div>
+
+      <div id="chatbot-messages" class="card-body">
+        <div class="bot-message mb-2">
+          Hi! How can I help you today?
+        </div>
+
+        <div id="chatbot-options" class="mt-3 d-flex flex-column gap-2">
+          <button class="btn btn-outline-primary btn-sm chatbot-option">When is the next match?</button>
+          <button class="btn btn-outline-primary btn-sm chatbot-option">How do I contact the club?</button>
+          <button class="btn btn-outline-primary btn-sm chatbot-option">Where can I see results?</button>
+          <button class="btn btn-outline-primary btn-sm chatbot-option">How do I register?</button>
+          <button class="btn btn-outline-primary btn-sm chatbot-option">How do I log in?</button>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <input type="text" id="chatbot-input" class="form-control" placeholder="Ask me something...">
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if request.path == '/' or request.path.startswith('/public') or request.path.startswith('/contact') %}
+  <script>
+    const chatbotToggle = document.getElementById("chatbot-toggle");
+    const chatbotBox = document.getElementById("chatbot-box");
+    const chatbotClose = document.getElementById("chatbot-close");
+    const chatbotInput = document.getElementById("chatbot-input");
+    const chatbotMessages = document.getElementById("chatbot-messages");
+    const chatbotOptions = document.querySelectorAll(".chatbot-option");
+
+    chatbotToggle.addEventListener("click", () => {
+      chatbotBox.style.display = chatbotBox.style.display === "none" ? "block" : "none";
+    });
+
+    chatbotClose.addEventListener("click", () => {
+      chatbotBox.style.display = "none";
+    });
+
+    function addMessage(text, sender = "bot") {
+      const msg = document.createElement("div");
+      msg.className = sender === "user" ? "user-message mb-2" : "bot-message mb-2";
+      msg.innerHTML = text;
+      chatbotMessages.appendChild(msg);
+      chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+
+    function getBotReply(message) {
+      const msg = message.toLowerCase();
+
+      if (msg.includes("next match") || msg.includes("fixture") || msg.includes("fixtures")) {
+        return `You can view upcoming fixtures <a href="/public/fixtures">here</a>.`;
+      }
+
+      if (msg.includes("result") || msg.includes("results")) {
+        return `You can view recent results <a href="/public/results">here</a>.`;
+      }
+
+      if (msg.includes("news")) {
+        return `You can read the latest club news <a href="/public/news">here</a>.`;
+      }
+
+      if (msg.includes("contact")) {
+        return `You can contact the club using the <a href="/contact">Contact page</a>.`;
+      }
+
+      if (msg.includes("register") || msg.includes("sign up")) {
+        return `You can create an account <a href="/register">here</a>.`;
+      }
+
+      if (msg.includes("login") || msg.includes("log in")) {
+        return `You can log in <a href="/login">here</a>.`;
+      }
+
+      if (msg.includes("book") || msg.includes("booking") || msg.includes("session")) {
+        return `Players can log in and manage session bookings from their dashboard.`;
+      }
+
+      if (msg.includes("password") || msg.includes("forgot password")) {
+        return `If you forgot your password, please visit <a href="/forgot-password">Forgot Password</a>.`;
+      }
+
+      return `Sorry, I’m not sure about that yet. Try asking about fixtures, results, news, contact, login, or registration.`;
+    }
+
+    chatbotOptions.forEach(button => {
+      button.addEventListener("click", () => {
+        const question = button.textContent;
+        addMessage(question, "user");
+
+        setTimeout(() => {
+          addMessage(getBotReply(question), "bot");
+        }, 300);
+      });
+    });
+
+    chatbotInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter" && chatbotInput.value.trim() !== "") {
+        const userText = chatbotInput.value.trim();
+        addMessage(userText, "user");
+
+        setTimeout(() => {
+          addMessage(getBotReply(userText), "bot");
+        }, 300);
+
+        chatbotInput.value = "";
+      }
+    });
+  </script>
+  {% endif %}
 
 </body>
 
