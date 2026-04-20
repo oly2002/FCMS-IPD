@@ -1,13 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- page heading -->
 <h3 class="mb-3">Coach Dashboard</h3>
 
+<!-- show message if no sessions are assigned -->
 {% if sessions|length == 0 %}
   <div class="alert alert-info">
     No sessions assigned to you yet. Ask admin to assign you to a session.
   </div>
 {% else %}
+  <!-- coach sessions table -->
   <div class="table-responsive">
     <table class="table table-striped align-middle">
       <thead>
@@ -22,11 +25,13 @@
       <tbody>
         {% for s in sessions %}
         <tr>
+          <!-- session details -->
           <td>{{ s.title }}</td>
           <td>{{ s.session_date }}</td>
           <td>{{ s.start_time.strftime("%H:%M") }}</td>
           <td>{{ s.location }}</td>
           <td>
+            <!-- button to mark attendance -->
             <a class="btn btn-sm btn-primary" href="/coach/sessions/{{ s.id }}/attendance">
               Mark Attendance
             </a>

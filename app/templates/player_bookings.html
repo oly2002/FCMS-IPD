@@ -1,14 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- page title and back button -->
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="mb-0">My Bookings</h3>
   <a class="btn btn-outline-primary" href="/player/sessions">Back to Sessions</a>
 </div>
 
+<!-- show message if player has no bookings -->
 {% if bookings|length == 0 %}
   <div class="alert alert-info">You have no bookings yet.</div>
 {% else %}
+  <!-- bookings table -->
   <div class="table-responsive">
     <table class="table table-striped align-middle">
       <thead>
@@ -24,11 +27,13 @@
       <tbody>
         {% for b in bookings %}
         <tr>
+          <!-- booking details -->
           <td>{{ b.session.title }}</td>
           <td>{{ b.session.session_date }}</td>
           <td>{{ b.session.start_time.strftime("%H:%M") }}</td>
           <td>{{ b.session.location }}</td>
           <td>
+            <!-- booking status -->
             {% if b.status == "booked" %}
               <span class="badge bg-success">Booked</span>
             {% else %}
@@ -36,6 +41,7 @@
             {% endif %}
           </td>
           <td>
+            <!-- allow cancel only if booking is active -->
             {% if b.status == "booked" %}
               <form method="post" action="/player/bookings/{{ b.id }}/cancel" style="display:inline;">
                 <button class="btn btn-sm btn-outline-danger"

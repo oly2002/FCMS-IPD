@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- page heading changes for create or edit -->
 <h3 class="mb-3">{% if mode=="create" %}Post News{% else %}Edit News{% endif %}</h3>
 
+<!-- news form -->
 <form method="post" class="card p-3" style="max-width: 800px;">
   <div class="mb-2">
     <label class="form-label">Title *</label>
@@ -13,6 +15,7 @@
     <textarea class="form-control" name="body" rows="6" required>{{ item.body if item else '' }}</textarea>
   </div>
 
+  
   <div class="mt-2 d-flex gap-2">
     <button class="btn btn-success" type="submit">Save</button>
     <a class="btn btn-secondary" href="/admin/news">Cancel</a>

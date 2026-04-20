@@ -8,17 +8,20 @@ from .models import Session, Booking, Attendance, User
 
 coach_bp = Blueprint("coach", __name__)
 
+# check if logged-in user has the correct role
 def role_required(*roles):
     def decorator(fn):
         @wraps(fn)
         @login_required
         def wrapper(*args, **kwargs):
+            # block access if role is not allowed
             if current_user.role not in roles:
                 abort(403)
             return fn(*args, **kwargs)
         return wrapper
     return decorator
 
+# coach dashboard shows only sessions assigned to that coach
 @coach_bp.route("/")
 @role_required("coach")
 def dashboard():
@@ -27,9 +30,11 @@ def dashboard():
     ).all()
     return render_template("coach_dashboard.html", sessions=sessions)
 
+# coach reports page for their own sessions
 @coach_bp.route("/reports")
 @role_required("coach")
 def reports():
+    # count booked players for each session handled by this coach
     bookings_per_session = (
         db.session.query(Session, func.count(Booking.id))
         .outerjoin(Booking, (Booking.session_id == Session.id) & (Booking.status == "booked"))
@@ -39,6 +44,7 @@ def reports():
         .all()
     )
 
+    # count present and absent players for each coach session
     attendance_summary = (
         db.session.query(
             Session.id,
@@ -54,9 +60,11 @@ def reports():
         .all()
     )
 
+    # prepare booking data for chart
     booking_labels = [f"{s.title} ({s.session_date})" for s, count in bookings_per_session]
     booking_values = [count for s, count in bookings_per_session]
 
+    # get total attendance numbers
     total_present = sum((row.present or 0) for row in attendance_summary)
     total_absent = sum((row.absent or 0) for row in attendance_summary)
 
@@ -69,16 +77,21 @@ def reports():
         total_present=total_present,
         total_absent=total_absent,
     )
+
+# coach marks attendance for players in a session
 @coach_bp.route("/sessions/<int:session_id>/attendance", methods=["GET", "POST"])
 @role_required("coach")
 def attendance(session_id):
     s = Session.query.get_or_404(session_id)
+
+    # make sure coach can only access their own session
     if s.coach_id != current_user.id:
         abort(403)
 
+    # get booked players only
     bookings = Booking.query.filter_by(session_id=session_id, status="booked").all()
 
-    # map existing attendance: player_id -> status
+    # map existing attendance: player_id > status
     existing_map = {a.player_id: a.status for a in Attendance.query.filter_by(session_id=session_id).all()}
 
     if request.method == "POST":
@@ -87,11 +100,13 @@ def attendance(session_id):
             if status not in ["present", "absent"]:
                 continue
 
+            # update attendance if record already exists
             existing = Attendance.query.filter_by(session_id=session_id, player_id=b.player_id).first()
             if existing:
                 existing.status = status
                 existing.marked_by_coach_id = current_user.id
             else:
+                # create new attendance record if not already saved
                 a = Attendance(
                     session_id=session_id,
                     player_id=b.player_id,

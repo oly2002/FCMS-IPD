@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- page title and quick links -->
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="mb-0">All Bookings</h3>
   <div class="d-flex gap-2">
@@ -9,9 +10,11 @@
   </div>
 </div>
 
+<!-- show message if there are no bookings -->
 {% if bookings|length == 0 %}
   <div class="alert alert-info">No bookings yet.</div>
 {% else %}
+  <!-- bookings table -->
   <div class="table-responsive">
     <table class="table table-striped align-middle">
       <thead>
@@ -27,12 +30,14 @@
       <tbody>
         {% for b in bookings %}
         <tr>
+          <!-- booking details -->
           <td>{{ b.player.full_name }}</td>
           <td>{{ b.session.title }}</td>
           <td>{{ b.session.session_date }}</td>
           <td>{{ b.session.start_time.strftime("%H:%M") }}</td>
           <td>{{ b.session.location }}</td>
           <td>
+            <!-- booking status badge -->
             {% if b.status == "booked" %}
               <span class="badge bg-success">Booked</span>
             {% else %}

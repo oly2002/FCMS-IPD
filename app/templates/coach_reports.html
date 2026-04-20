@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- page title and back button -->
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="mb-0">Coach Reports</h3>
   <div class="d-flex gap-2">
@@ -8,11 +9,12 @@
   </div>
 </div>
 
-<!-- Charts -->
+<!-- charts section -->
 <div class="row g-4 mb-4">
 
   <div class="col-lg-8">
     <div class="card p-3 shadow-sm">
+      <!-- bookings chart -->
       <h5>Bookings per Session (Chart)</h5>
       <canvas id="bookingsChart"></canvas>
     </div>
@@ -20,6 +22,7 @@
 
   <div class="col-lg-4">
     <div class="card p-3 shadow-sm">
+      <!-- attendance chart -->
       <h5>Attendance Overview</h5>
       <canvas id="attendanceChart"></canvas>
     </div>
@@ -27,7 +30,7 @@
 
 </div>
 
-<!-- Original bookings table -->
+<!-- bookings summary table -->
 <div class="card p-3 mb-4">
   <h5>Bookings per Session (active)</h5>
   <div class="table-responsive">
@@ -44,6 +47,7 @@
       <tbody>
         {% for s, count in bookings_per_session %}
         <tr>
+          <!-- session booking details -->
           <td>{{ s.title }}</td>
           <td>{{ s.session_date }}</td>
           <td>{{ s.start_time.strftime("%H:%M") }}</td>
@@ -56,7 +60,7 @@
   </div>
 </div>
 
-<!-- Original attendance table -->
+<!-- attendance summary table -->
 <div class="card p-3">
   <h5>Attendance Summary</h5>
   <div class="table-responsive">
@@ -72,6 +76,7 @@
       <tbody>
         {% for row in attendance_summary %}
         <tr>
+          <!-- attendance details -->
           <td>{{ row.title }}</td>
           <td>{{ row.session_date }}</td>
           <td>{{ row.present or 0 }}</td>
@@ -83,7 +88,7 @@
   </div>
 </div>
 
-<!-- Safe JSON data for charts -->
+<!-- send chart data safely from Flask to JavaScript -->
 <script id="booking-labels-data" type="application/json">
   {{ booking_labels | tojson }}
 </script>
@@ -98,18 +103,22 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+  // get booking labels from backend
   const bookingLabels = JSON.parse(
     document.getElementById("booking-labels-data").textContent
   );
 
+  // get booking values from backend
   const bookingValues = JSON.parse(
     document.getElementById("booking-values-data").textContent
   );
 
+  // get attendance totals from backend
   const attendanceData = JSON.parse(
     document.getElementById("attendance-data").textContent
   );
 
+  // bar chart for bookings per session
   new Chart(document.getElementById("bookingsChart"), {
     type: "bar",
     data: {
@@ -138,6 +147,7 @@
     }
   });
 
+  // doughnut chart for attendance overview
   new Chart(document.getElementById("attendanceChart"), {
     type: "doughnut",
     data: {

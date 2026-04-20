@@ -1,15 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- page title and back button -->
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="mb-0">News</h3>
   <a class="btn btn-outline-primary" href="/public">Back</a>
 </div>
 
+<!-- show message if there is no news -->
 {% if items|length == 0 %}
   <div class="alert alert-info">No news posted yet.</div>
 {% else %}
   {% for n in items %}
+    <!-- single news card -->
     <div class="card p-3 mb-3">
       <h5 class="mb-1">{{ n.title }}</h5>
       <div class="text-muted mb-2">{{ n.published_at.strftime("%Y-%m-%d %H:%M") }}</div>

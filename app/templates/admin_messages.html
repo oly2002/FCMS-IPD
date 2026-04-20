@@ -1,15 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- page title and back button -->
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="mb-0">Contact Messages</h3>
   <a class="btn btn-outline-secondary" href="/admin/">Dashboard</a>
 </div>
 
+<!-- messages section -->
 <div class="card p-3">
+  <!-- show message if there are no contact messages -->
   {% if messages|length == 0 %}
     <div class="alert alert-info mb-0">No messages received yet.</div>
   {% else %}
+    <!-- contact messages table -->
     <div class="table-responsive">
       <table class="table table-striped align-middle">
         <thead>
@@ -23,6 +27,7 @@
         <tbody>
           {% for msg in messages %}
           <tr>
+            <!-- contact message details -->
             <td>{{ msg.name }}</td>
             <td>{{ msg.email }}</td>
             <td style="max-width: 350px;">{{ msg.message }}</td>

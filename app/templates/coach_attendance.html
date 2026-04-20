@@ -1,18 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- page title and back button -->
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="mb-0">Attendance: {{ session.title }}</h3>
   <a class="btn btn-outline-primary" href="/coach/">Back</a>
 </div>
 
+<!-- session details -->
 <p class="text-muted">
   {{ session.session_date }} • {{ session.start_time.strftime("%H:%M") }} • {{ session.location }}
 </p>
 
+<!-- show message if no players booked -->
 {% if bookings|length == 0 %}
   <div class="alert alert-info">No players booked this session yet.</div>
 {% else %}
+  <!-- attendance form -->
   <form method="post" class="card p-3">
     <div class="table-responsive">
       <table class="table table-striped align-middle">
@@ -26,10 +30,12 @@
           {% for b in bookings %}
           {% set current = existing_map.get(b.player_id, "") %}
           <tr>
+            <!-- player name -->
             <td>
               {{ players[b.player_id].full_name if b.player_id in players else ("Player ID " ~ b.player_id) }}
             </td>
             <td>
+              <!-- attendance status -->
               <select class="form-select" name="att_{{ b.player_id }}">
                 <option value="" {% if current=="" %}selected{% endif %}>-- Not marked --</option>
                 <option value="present" {% if current=="present" %}selected{% endif %}>Present</option>
@@ -42,6 +48,7 @@
       </table>
     </div>
 
+    <!-- save button -->
     <button class="btn btn-success mt-2" type="submit">Save Attendance</button>
   </form>
 {% endif %}

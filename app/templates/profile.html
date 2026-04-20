@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- page heading -->
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
     <h3 class="mb-0">My Profile</h3>
@@ -13,21 +14,26 @@
     <div class="card p-3">
       <div class="d-flex align-items-center gap-3">
         <div>
+          <!-- show profile photo if uploaded -->
           {% if current_user.profile_photo %}
           <img src="{{ url_for('static', filename='uploads/profiles/' ~ current_user.profile_photo) }}"
             alt="Profile Photo" width="90" height="90" class="rounded-circle border" style="object-fit: cover;">
           {% else %}
+          <!-- default profile image -->
           <img src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default Profile" width="90"
             height="90" class="rounded-circle border" style="object-fit: cover;">
           {% endif %}
         </div>
 
         <div>
+          <!-- basic user info -->
           <div class="h5 mb-1">{{ current_user.full_name }}</div>
           <div class="text-muted">{{ current_user.email }}</div>
           <span class="badge bg-dark mt-2 text-uppercase">{{ current_user.role }}</span>
         </div>
       </div>
+
+      <!-- small note about account changes -->
       <div class="alert alert-info mt-3 d-flex align-items-start gap-2">
         <div>ℹ️</div>
         <div>
@@ -38,6 +44,7 @@
 
       <hr>
 
+      <!-- upload new profile photo -->
       <form method="post" action="{{ url_for('auth.upload_profile_photo') }}" enctype="multipart/form-data">
         <div class="mb-2">
           <label class="form-label">Upload Profile Photo</label>
@@ -48,6 +55,7 @@
 
       <hr>
 
+      <!-- quick links based on user role -->
       <div class="d-flex gap-2 flex-wrap">
         {% if current_user.role == "admin" %}
         <a class="btn btn-outline-primary btn-sm" href="/admin/sessions">Admin Area</a>
@@ -65,6 +73,7 @@
     <div class="card p-3">
       <h5 class="mb-3">Quick Stats</h5>
 
+      <!-- show role-based stats if available -->
       {% if stats and stats|length > 0 %}
       <div class="table-responsive">
         <table class="table table-striped align-middle mb-0">

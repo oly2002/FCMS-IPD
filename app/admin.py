@@ -4,23 +4,24 @@ from functools import wraps
 from datetime import datetime
 import os
 import uuid
-
 from sqlalchemy import func, case
 from werkzeug.utils import secure_filename
-
 from . import db
 from .models import User, Session, Booking, Attendance, News, Fixture, ContactMessage
 
 admin_bp = Blueprint("admin", __name__)
 
+# allowed image types for uploads
 ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 
 
+# check if logged in user has the correct role
 def role_required(*roles):
     def decorator(fn):
         @wraps(fn)
         @login_required
         def wrapper(*args, **kwargs):
+            # stop access if user role is not allowed
             if current_user.role not in roles:
                 abort(403)
             return fn(*args, **kwargs)
@@ -28,10 +29,14 @@ def role_required(*roles):
     return decorator
 
 
+
+# check if uploaded file is an allowed image format
 def allowed_image(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
 
 
+
+# save fixture poster image in uploads folder
 def save_poster_file(file):
     if not file or not file.filename:
         return None
@@ -51,12 +56,14 @@ def save_poster_file(file):
     return filename
 
 
+# admin dashboard page
 @admin_bp.route("/")
 @role_required("admin")
 def dashboard():
     return render_template("admin_dashboard.html")
 
 
+# show all training sessions to admin
 @admin_bp.route("/sessions")
 @role_required("admin")
 def sessions_list():
@@ -64,9 +71,11 @@ def sessions_list():
     return render_template("admin_sessions.html", sessions=sessions)
 
 
+# admin creates a new training session
 @admin_bp.route("/sessions/create", methods=["GET", "POST"])
 @role_required("admin")
 def sessions_create():
+    # get all coaches so one can be assigned to the session
     coaches = User.query.filter_by(role="coach").order_by(User.full_name.asc()).all()
 
     if request.method == "POST":
@@ -78,10 +87,13 @@ def sessions_create():
         capacity_raw = request.form.get("capacity", "").strip()
         coach_id_raw = request.form.get("coach_id") or None
 
+        # basic validation for required fields
         if not session_date or not start_time or not location or not capacity_raw:
             flash("Please fill in date, start time, location, and capacity.", "danger")
             return redirect(url_for("admin.sessions_create"))
+        
 
+        # make sure capacity is a positive number
         try:
             capacity = int(capacity_raw)
             if capacity <= 0:
@@ -91,6 +103,7 @@ def sessions_create():
             return redirect(url_for("admin.sessions_create"))
 
         try:
+            # create new session record
             s = Session(
                 title=title,
                 session_date=datetime.strptime(session_date, "%Y-%m-%d").date(),
@@ -112,6 +125,9 @@ def sessions_create():
     return render_template("admin_session_form.html", mode="create", session=None, coaches=coaches)
 
 
+
+
+# admin edits an existing session
 @admin_bp.route("/sessions/<int:session_id>/edit", methods=["GET", "POST"])
 @role_required("admin")
 def sessions_edit(session_id):
@@ -127,10 +143,12 @@ def sessions_edit(session_id):
         capacity_raw = request.form.get("capacity", str(s.capacity)).strip()
         coach_id_raw = request.form.get("coach_id") or None
 
+        # check required fields before updating
         if not session_date or not start_time or not location or not capacity_raw:
             flash("Please fill in date, start time, location, and capacity.", "danger")
             return redirect(url_for("admin.sessions_edit", session_id=session_id))
 
+        # check that capacity stays valid
         try:
             capacity = int(capacity_raw)
             if capacity <= 0:
@@ -140,6 +158,7 @@ def sessions_edit(session_id):
             return redirect(url_for("admin.sessions_edit", session_id=session_id))
 
         try:
+            # update session details
             s.title = title
             s.session_date = datetime.strptime(session_date, "%Y-%m-%d").date()
             s.start_time = datetime.strptime(start_time, "%H:%M").time()
@@ -159,6 +178,9 @@ def sessions_edit(session_id):
     return render_template("admin_session_form.html", mode="edit", session=s, coaches=coaches)
 
 
+
+
+# admin deletes a session
 @admin_bp.route("/sessions/<int:session_id>/delete", methods=["POST"])
 @role_required("admin")
 def sessions_delete(session_id):
@@ -173,6 +195,8 @@ def sessions_delete(session_id):
     return redirect(url_for("admin.sessions_list"))
 
 
+
+# show all player bookings to admin
 @admin_bp.route("/bookings")
 @role_required("admin")
 def bookings_list():
@@ -180,9 +204,11 @@ def bookings_list():
     return render_template("admin_bookings.html", bookings=bookings)
 
 
+# admin reports page for bookings and attendance
 @admin_bp.route("/reports")
 @role_required("admin")
 def reports():
+    # count booked players for each session
     bookings_per_session = (
         db.session.query(Session, func.count(Booking.id))
         .outerjoin(Booking, (Booking.session_id == Session.id) & (Booking.status == "booked"))
@@ -191,6 +217,7 @@ def reports():
         .all()
     )
 
+    # count present and absent records for each session
     attendance_summary = (
         db.session.query(
             Session.id,
@@ -205,13 +232,15 @@ def reports():
         .all()
     )
 
-    # Chart data
+    # prepare booking data for chart display
     booking_labels = [f"{s.title} ({s.session_date})" for s, count in bookings_per_session]
     booking_values = [count for s, count in bookings_per_session]
 
+    # get total attendance numbers
     total_present = sum((row.present or 0) for row in attendance_summary)
     total_absent = sum((row.absent or 0) for row in attendance_summary)
 
+    # extra summary values for dashboard cards
     total_sessions = Session.query.count()
     total_bookings = Booking.query.filter_by(status="booked").count()
 
@@ -227,6 +256,7 @@ def reports():
         total_bookings=total_bookings,
     )
 
+# show all news posts
 @admin_bp.route("/news")
 @role_required("admin")
 def news_list():
@@ -234,6 +264,7 @@ def news_list():
     return render_template("admin_news.html", items=items)
 
 
+# admin creates a news post
 @admin_bp.route("/news/create", methods=["GET", "POST"])
 @role_required("admin")
 def news_create():
@@ -241,6 +272,7 @@ def news_create():
         title = request.form.get("title", "").strip()
         body = request.form.get("body", "").strip()
 
+        # make sure news has both title and content
         if not title or not body:
             flash("Title and body are required.", "danger")
             return redirect(url_for("admin.news_create"))
@@ -254,6 +286,7 @@ def news_create():
     return render_template("admin_news_form.html", mode="create", item=None)
 
 
+# admin edits a news post
 @admin_bp.route("/news/<int:news_id>/edit", methods=["GET", "POST"])
 @role_required("admin")
 def news_edit(news_id):
@@ -263,6 +296,7 @@ def news_edit(news_id):
         title = request.form.get("title", "").strip()
         body = request.form.get("body", "").strip()
 
+        # prevent empty news fields
         if not title or not body:
             flash("Title and body are required.", "danger")
             return redirect(url_for("admin.news_edit", news_id=news_id))
@@ -276,6 +310,7 @@ def news_edit(news_id):
     return render_template("admin_news_form.html", mode="edit", item=n)
 
 
+# admin deletes a news post
 @admin_bp.route("/news/<int:news_id>/delete", methods=["POST"])
 @role_required("admin")
 def news_delete(news_id):
@@ -286,6 +321,7 @@ def news_delete(news_id):
     return redirect(url_for("admin.news_list"))
 
 
+# show all fixtures
 @admin_bp.route("/fixtures")
 @role_required("admin")
 def fixtures_list():
@@ -293,6 +329,7 @@ def fixtures_list():
     return render_template("admin_fixtures.html", fixtures=fixtures)
 
 
+# admin creates a new fixture
 @admin_bp.route("/fixtures/create", methods=["GET", "POST"])
 @role_required("admin")
 def fixtures_create():
@@ -303,6 +340,7 @@ def fixtures_create():
         competition = request.form.get("competition", "").strip() or None
         opponent_logo = request.form.get("opponent_logo") or None
 
+        # required fields for fixture creation
         if not match_date or not opponent or not venue:
             flash("Date, opponent, and venue are required.", "danger")
             return redirect(url_for("admin.fixtures_create"))
@@ -310,12 +348,14 @@ def fixtures_create():
         poster_file = request.files.get("poster_image")
         poster_filename = None
 
+        # upload poster image if provided
         if poster_file and poster_file.filename:
             if not allowed_image(poster_file.filename):
                 flash("Poster image must be PNG, JPG, JPEG, or WEBP.", "danger")
                 return redirect(url_for("admin.fixtures_create"))
             poster_filename = save_poster_file(poster_file)
 
+        # save fixture in database
         f = Fixture(
             match_date=datetime.strptime(match_date, "%Y-%m-%d").date(),
             opponent=opponent,
@@ -335,6 +375,7 @@ def fixtures_create():
     return render_template("admin_fixture_form.html", mode="create", item=None)
 
 
+# admin edits fixture details and result
 @admin_bp.route("/fixtures/<int:fixture_id>/edit", methods=["GET", "POST"])
 @role_required("admin")
 def fixtures_edit(fixture_id):
@@ -347,6 +388,7 @@ def fixtures_edit(fixture_id):
         competition = request.form.get("competition", "").strip() or None
         opponent_logo = request.form.get("opponent_logo") or None
 
+        # check required fixture fields
         if not match_date or not opponent or not venue:
             flash("Date, opponent, and venue are required.", "danger")
             return redirect(url_for("admin.fixtures_edit", fixture_id=fixture_id))
@@ -357,6 +399,7 @@ def fixtures_edit(fixture_id):
         f.competition = competition
         f.opponent_logo = opponent_logo
 
+        # replace poster image if a new one is uploaded
         poster_file = request.files.get("poster_image")
         if poster_file and poster_file.filename:
             if not allowed_image(poster_file.filename):
@@ -370,6 +413,7 @@ def fixtures_edit(fixture_id):
         home_score_raw = request.form.get("home_score", "").strip()
         away_score_raw = request.form.get("away_score", "").strip()
 
+        # only save scores if the match is marked as played
         if is_played:
             try:
                 f.home_score = int(home_score_raw)
@@ -392,6 +436,7 @@ def fixtures_edit(fixture_id):
     return render_template("admin_fixture_form.html", mode="edit", item=f)
 
 
+# admin deletes a fixture
 @admin_bp.route("/fixtures/<int:fixture_id>/delete", methods=["POST"])
 @role_required("admin")
 def fixtures_delete(fixture_id):
@@ -402,6 +447,7 @@ def fixtures_delete(fixture_id):
     return redirect(url_for("admin.fixtures_list"))
 
 
+# admin creates a new user account
 @admin_bp.route("/users/create", methods=["GET", "POST"])
 @role_required("admin")
 def create_user():
@@ -411,14 +457,17 @@ def create_user():
         password = request.form.get("password", "")
         role = request.form.get("role", "player")
 
+        # allow only valid system roles
         if role not in ["player", "coach", "admin"]:
             flash("Invalid role.", "danger")
             return redirect(url_for("admin.create_user"))
 
+        # all main fields are required
         if not full_name or not email or not password:
             flash("All fields are required.", "danger")
             return redirect(url_for("admin.create_user"))
 
+        # stop duplicate email accounts
         if User.query.filter_by(email=email).first():
             flash("Email already exists.", "danger")
             return redirect(url_for("admin.create_user"))
@@ -429,6 +478,7 @@ def create_user():
             role=role,
             profile_photo=None
         )
+        # hash the password before saving
         u.set_password(password)
         db.session.add(u)
         db.session.commit()
@@ -438,12 +488,16 @@ def create_user():
 
     return render_template("admin_user_form.html")
 
+
+# admin views contact messages sent from public site
 @admin_bp.route("/messages")
 @role_required("admin")
 def messages_list():
     messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
     return render_template("admin_messages.html", messages=messages)
 
+
+# show all users grouped by role
 @admin_bp.route("/users")
 @role_required("admin")
 def users_list():
@@ -458,6 +512,8 @@ def users_list():
         admins=admins
     )
 
+
+# admin edits user details
 @admin_bp.route("/users/<int:user_id>/edit", methods=["GET", "POST"])
 @role_required("admin")
 def edit_user(user_id):
@@ -468,19 +524,23 @@ def edit_user(user_id):
         email = request.form.get("email", "").strip().lower()
         role = request.form.get("role", "player")
 
+        # validate selected role
         if role not in ["player", "coach", "admin"]:
             flash("Invalid role.", "danger")
             return redirect(url_for("admin.edit_user", user_id=user.id))
 
+        # check required fields
         if not full_name or not email:
             flash("Full name and email are required.", "danger")
             return redirect(url_for("admin.edit_user", user_id=user.id))
 
+        # make sure email is still unique
         existing = User.query.filter(User.email == email, User.id != user.id).first()
         if existing:
             flash("Another user already uses that email.", "danger")
             return redirect(url_for("admin.edit_user", user_id=user.id))
 
+        # update user details
         user.full_name = full_name
         user.email = email
         user.role = role
@@ -492,11 +552,13 @@ def edit_user(user_id):
     return render_template("admin_user_edit.html", user=user)
 
 
+# admin deletes a user account
 @admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
 @role_required("admin")
 def delete_user(user_id):
     user = User.query.get_or_404(user_id)
 
+    # stop admin from deleting their own account while logged in
     if user.id == current_user.id:
         flash("You cannot delete your own account while logged in.", "danger")
         return redirect(url_for("admin.users_list"))
@@ -511,6 +573,8 @@ def delete_user(user_id):
 
     return redirect(url_for("admin.users_list"))
 
+
+# admin resets a user's password
 @admin_bp.route("/users/<int:user_id>/reset-password", methods=["GET", "POST"])
 @role_required("admin")
 def reset_password(user_id):
@@ -520,18 +584,22 @@ def reset_password(user_id):
         new_password = request.form.get("password", "")
         confirm_password = request.form.get("confirm_password", "")
 
+        # both password fields must be filled
         if not new_password or not confirm_password:
             flash("Both password fields are required.", "danger")
             return redirect(url_for("admin.reset_password", user_id=user.id))
 
+        # check if both entered passwords match
         if new_password != confirm_password:
             flash("Passwords do not match.", "danger")
             return redirect(url_for("admin.reset_password", user_id=user.id))
 
+        # simple password length validation
         if len(new_password) < 8:
             flash("Password must be at least 8 characters long.", "danger")
             return redirect(url_for("admin.reset_password", user_id=user.id))
 
+        # save new hashed password
         user.set_password(new_password)
         db.session.commit()
 

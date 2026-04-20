@@ -2,33 +2,41 @@
 <html>
 
 <head>
+  <!-- basic page settings -->
   <meta charset="utf-8">
   <title>Tower East FC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap and custom stylesheet -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 
 <body class="bg-light d-flex flex-column min-vh-100">
 
+  <!-- main navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
 
+      <!-- club logo and brand name -->
       <a class="navbar-brand d-flex align-items-center gap-2" href="/">
         <img src="/static/img/logo.png" alt="Club Logo" width="32" height="32" style="object-fit:contain;">
         <span>Tower East FC</span>
       </a>
 
+      <!-- mobile menu button -->
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div class="collapse navbar-collapse" id="mainNav">
 
+        <!-- left side nav links -->
         <div class="navbar-nav me-auto">
           <a class="nav-link {% if request.path.startswith('/public') %}active{% endif %}" href="/public">Fan Site</a>
           <a class="nav-link {% if request.path.startswith('/contact') %}active{% endif %}" href="/contact">Contact</a>
 
+          <!-- admin links -->
           {% if current_user.is_authenticated and current_user.role == "admin" %}
           <a class="nav-link {% if request.path.startswith('/admin/sessions') %}active{% endif %}"
             href="/admin/sessions">Sessions</a>
@@ -49,7 +57,7 @@
             href="/admin/users">Users</a>
           <a class="nav-link {% if request.path == '/profile' %}active{% endif %}" href="/profile">Profile</a>
 
-
+          <!-- player links -->
           {% elif current_user.is_authenticated and current_user.role == "player" %}
           <a class="nav-link {% if request.path.startswith('/player/sessions') %}active{% endif %}"
             href="/player/sessions">Sessions</a>
@@ -57,6 +65,7 @@
             href="/player/bookings">My Bookings</a>
           <a class="nav-link {% if request.path == '/profile' %}active{% endif %}" href="/profile">Profile</a>
 
+          <!-- coach links -->
           {% elif current_user.is_authenticated and current_user.role == "coach" %}
           <a class="nav-link {% if request.path == '/coach/' or request.path.startswith('/coach/sessions') %}active{% endif %}"
             href="/coach/">My Sessions</a>
@@ -66,22 +75,27 @@
           {% endif %}
         </div>
 
+        <!-- right side login/profile area -->
         <div class="d-flex gap-2 align-items-center">
           {% if current_user.is_authenticated %}
+          <!-- show profile photo if user uploaded one -->
           {% if current_user.profile_photo %}
           <img src="{{ url_for('static', filename='uploads/profiles/' ~ current_user.profile_photo) }}"
             alt="Profile Photo" width="32" height="32" class="rounded-circle border border-light"
             style="object-fit: cover;">
           {% else %}
+          <!-- default profile image -->
           <img src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default Profile" width="32"
             height="32" class="rounded-circle border border-light" style="object-fit: cover;">
           {% endif %}
 
+          <!-- logged in user name and role -->
           <span class="text-light small d-none d-lg-inline">
             {{ current_user.full_name }} ({{ current_user.role }})
           </span>
           <a class="btn btn-outline-light btn-sm" href="/logout">Logout</a>
           {% else %}
+          <!-- login and register buttons -->
           <a class="btn btn-outline-light btn-sm" href="/login">Login</a>
           <a class="btn btn-warning btn-sm" href="/register">Register</a>
           {% endif %}
@@ -91,10 +105,11 @@
     </div>
   </nav>
 
-  <!-- Main content (this pushes footer down) -->
+  <!-- main page content -->
   <main class="flex-grow-1">
     <div class="container mt-4">
 
+      <!-- flash messages -->
       {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
       {% for category, message in messages %}
@@ -106,15 +121,17 @@
       {% endif %}
       {% endwith %}
 
+      <!-- page content from other templates -->
       {% block content %}{% endblock %}
     </div>
   </main>
 
+  <!-- footer -->
   <footer class="bg-dark text-light mt-5">
     <div class="container py-3">
       <div class="row align-items-center g-3">
 
-        <!-- Left: Brand -->
+        <!-- left side footer brand -->
         <div class="col-md-6">
           <div class="d-flex align-items-center gap-2">
             <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Club Logo" height="32">
@@ -125,7 +142,7 @@
           </div>
         </div>
 
-        <!-- Right: Links -->
+        <!-- right side footer links -->
         <div class="col-md-6 text-md-end">
           <div class="d-flex justify-content-md-end gap-3 flex-wrap">
             <a class="text-light text-decoration-none" href="/public">Fan Site</a>
@@ -144,6 +161,7 @@
 
       <hr class="border-secondary my-3">
 
+      <!-- bottom footer text -->
       <div class="d-flex justify-content-between flex-wrap small text-secondary">
         <div>© {{ current_year }} Tower East FC</div>
         <div>Email: info@towereastfc.com</div>
@@ -151,13 +169,16 @@
     </div>
   </footer>
 
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+  <!-- chatbot only shows on public pages -->
   {% if request.path == '/' or request.path.startswith('/public') or request.path.startswith('/contact') %}
-  <!-- Club Assistant Chatbot -->
   <div id="chatbot-container">
+    <!-- chatbot open button -->
     <button id="chatbot-toggle" class="btn btn-primary rounded-circle">💬</button>
 
+    <!-- chatbot box -->
     <div id="chatbot-box" class="card shadow" style="display: none;">
       <div class="card-header d-flex justify-content-between align-items-center">
         <strong>Club Assistant</strong>
@@ -165,10 +186,12 @@
       </div>
 
       <div id="chatbot-messages" class="card-body">
+        <!-- first bot message -->
         <div class="bot-message mb-2">
           Hi! How can I help you today?
         </div>
 
+        <!-- suggested questions -->
         <div id="chatbot-options" class="mt-3 d-flex flex-column gap-2">
           <button class="btn btn-outline-primary btn-sm chatbot-option">When is the next match?</button>
           <button class="btn btn-outline-primary btn-sm chatbot-option">How do I contact the club?</button>
@@ -178,6 +201,7 @@
         </div>
       </div>
 
+      <!-- chatbot input box -->
       <div class="card-footer">
         <input type="text" id="chatbot-input" class="form-control" placeholder="Ask me something...">
       </div>
@@ -185,6 +209,7 @@
   </div>
   {% endif %}
 
+  <!-- chatbot script for public pages -->
   {% if request.path == '/' or request.path.startswith('/public') or request.path.startswith('/contact') %}
   <script>
     const chatbotToggle = document.getElementById("chatbot-toggle");
@@ -194,14 +219,17 @@
     const chatbotMessages = document.getElementById("chatbot-messages");
     const chatbotOptions = document.querySelectorAll(".chatbot-option");
 
+    // open or close chatbot
     chatbotToggle.addEventListener("click", () => {
       chatbotBox.style.display = chatbotBox.style.display === "none" ? "block" : "none";
     });
 
+    // close chatbot
     chatbotClose.addEventListener("click", () => {
       chatbotBox.style.display = "none";
     });
 
+    // add message to chatbot area
     function addMessage(text, sender = "bot") {
       const msg = document.createElement("div");
       msg.className = sender === "user" ? "user-message mb-2" : "bot-message mb-2";
@@ -210,6 +238,7 @@
       chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
     }
 
+    // simple rule-based chatbot replies
     function getBotReply(message) {
       const msg = message.toLowerCase();
 
@@ -248,6 +277,7 @@
       return `Sorry, I’m not sure about that yet. Try asking about fixtures, results, news, contact, login, or registration.`;
     }
 
+    // handle suggested question buttons
     chatbotOptions.forEach(button => {
       button.addEventListener("click", () => {
         const question = button.textContent;
@@ -259,6 +289,7 @@
       });
     });
 
+    // handle user typing in chatbot input
     chatbotInput.addEventListener("keypress", function (e) {
       if (e.key === "Enter" && chatbotInput.value.trim() !== "") {
         const userText = chatbotInput.value.trim();

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- page title and quick links -->
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="mb-0">Fixtures & Results</h3>
   <div class="d-flex gap-2">
@@ -10,9 +11,11 @@
   </div>
 </div>
 
+<!-- show message if there are no fixtures -->
 {% if fixtures|length == 0 %}
   <div class="alert alert-info">No fixtures yet.</div>
 {% else %}
+  <!-- fixtures table -->
   <div class="table-responsive">
     <table class="table table-striped align-middle">
       <thead>
@@ -29,16 +32,17 @@
       <tbody>
         {% for f in fixtures %}
         <tr>
+          <!-- match date -->
           <td>{{ f.match_date }}</td>
           <td>
             <div class="d-flex align-items-center gap-2">
-              <!-- Club logo -->
+              <!-- club logo and name -->
               <img src="/static/img/logo.png" width="26" height="26" alt="Club Logo">
               <strong>Tower East Fc</strong>
 
               <span class="mx-1">vs</span>
 
-              <!-- Opponent logo -->
+              <!-- opponent logo -->
               {% if f.opponent_logo %}
                 <img src="/static/img/opponents/{{ f.opponent_logo }}" width="26" height="26" alt="Opponent Logo">
               {% else %}
@@ -48,8 +52,12 @@
             </div>
           </td>
 
+          <!-- venue and competition -->
           <td>{{ f.venue }}</td>
           <td>{{ f.competition or "-" }}</td>
+
+          
+          <!-- fixture status -->
           <td>
             {% if f.is_played %}
               <span class="badge bg-success">Played</span>
@@ -57,6 +65,8 @@
               <span class="badge bg-secondary">Upcoming</span>
             {% endif %}
           </td>
+
+          <!-- show score only if match is played -->
           <td>
             {% if f.is_played and f.home_score is not none and f.away_score is not none %}
               {{ f.home_score }} - {{ f.away_score }}
@@ -64,6 +74,10 @@
               —
             {% endif %}
           </td>
+
+
+
+          <!-- edit and delete buttons -->
           <td>
             <a class="btn btn-sm btn-outline-secondary" href="/admin/fixtures/{{ f.id }}/edit">Edit</a>
             <form method="post" action="/admin/fixtures/{{ f.id }}/delete" style="display:inline;">

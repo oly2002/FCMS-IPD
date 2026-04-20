@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- page title and quick links -->
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="mb-0">News</h3>
   <div class="d-flex gap-2">
@@ -10,17 +11,21 @@
   </div>
 </div>
 
+<!-- show message if there are no news posts -->
 {% if items|length == 0 %}
   <div class="alert alert-info">No news yet.</div>
 {% else %}
   {% for n in items %}
+    <!-- single news card -->
     <div class="card p-3 mb-3">
       <div class="d-flex justify-content-between align-items-start">
         <div>
+          <!-- news title and date -->
           <h5 class="mb-1">{{ n.title }}</h5>
           <div class="text-muted">{{ n.published_at.strftime("%Y-%m-%d %H:%M") }}</div>
         </div>
         <div class="d-flex gap-2">
+          <!-- edit and delete buttons -->
           <a class="btn btn-sm btn-outline-secondary" href="/admin/news/{{ n.id }}/edit">Edit</a>
           <form method="post" action="/admin/news/{{ n.id }}/delete">
             <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this news post?')">
@@ -30,6 +35,7 @@
         </div>
       </div>
       <hr>
+      <!-- news body -->
       <div>{{ n.body }}</div>
     </div>
   {% endfor %}

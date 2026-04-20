@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- page title and top buttons -->
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="mb-0">Users</h3>
   <div class="d-flex gap-2">
@@ -9,7 +10,7 @@
   </div>
 </div>
 
-<!-- Players -->
+<!-- players section -->
 <div class="card p-3 mb-4">
   <h5 class="mb-3">Players</h5>
 
@@ -31,10 +32,12 @@
         {% for user in players %}
         <tr>
           <td>
+            <!-- show player photo if uploaded -->
             {% if user.profile_photo %}
             <img src="{{ url_for('static', filename='uploads/profiles/' ~ user.profile_photo) }}" alt="Profile Photo"
               width="50" height="50" class="rounded-circle border" style="object-fit: cover;">
             {% else %}
+            <!-- default photo -->
             <img src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default Profile" width="50"
               height="50" class="rounded-circle border" style="object-fit: cover;">
             {% endif %}
@@ -43,6 +46,7 @@
           <td>{{ user.email }}</td>
           <td><span class="badge bg-primary text-uppercase">{{ user.role }}</span></td>
           <td>
+            <!-- action buttons -->
             <div class="d-flex gap-2 flex-wrap">
               <a class="btn btn-sm btn-outline-secondary" href="/admin/users/{{ user.id }}/edit">Edit</a>
 
@@ -65,7 +69,7 @@
   {% endif %}
 </div>
 
-<!-- Coaches -->
+<!-- coaches section -->
 <div class="card p-3 mb-4">
   <h5 class="mb-3">Coaches</h5>
 
@@ -87,10 +91,12 @@
         {% for user in coaches %}
         <tr>
           <td>
+            <!-- show coach photo if uploaded -->
             {% if user.profile_photo %}
             <img src="{{ url_for('static', filename='uploads/profiles/' ~ user.profile_photo) }}" alt="Profile Photo"
               width="50" height="50" class="rounded-circle border" style="object-fit: cover;">
             {% else %}
+            <!-- default photo -->
             <img src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default Profile" width="50"
               height="50" class="rounded-circle border" style="object-fit: cover;">
             {% endif %}
@@ -99,6 +105,7 @@
           <td>{{ user.email }}</td>
           <td><span class="badge bg-success text-uppercase">{{ user.role }}</span></td>
           <td>
+            <!-- action buttons -->
             <div class="d-flex gap-2 flex-wrap">
               <a class="btn btn-sm btn-outline-secondary" href="/admin/users/{{ user.id }}/edit">Edit</a>
 
@@ -121,7 +128,7 @@
   {% endif %}
 </div>
 
-<!-- Admins -->
+<!-- admins section -->
 <div class="card p-3">
   <h5 class="mb-3">Admins</h5>
 
@@ -143,10 +150,12 @@
         {% for user in admins %}
         <tr>
           <td>
+            <!-- show admin photo if uploaded -->
             {% if user.profile_photo %}
             <img src="{{ url_for('static', filename='uploads/profiles/' ~ user.profile_photo) }}" alt="Profile Photo"
               width="50" height="50" class="rounded-circle border" style="object-fit: cover;">
             {% else %}
+            <!-- default photo -->
             <img src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default Profile" width="50"
               height="50" class="rounded-circle border" style="object-fit: cover;">
             {% endif %}
@@ -155,6 +164,7 @@
           <td>{{ user.email }}</td>
           <td><span class="badge bg-dark text-uppercase">{{ user.role }}</span></td>
           <td>
+            <!-- action buttons -->
             <div class="d-flex gap-2 flex-wrap">
               <a class="btn btn-sm btn-outline-secondary" href="/admin/users/{{ user.id }}/edit">Edit</a>
 

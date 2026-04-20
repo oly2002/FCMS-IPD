@@ -4,6 +4,7 @@ from .models import News, Fixture, ContactMessage
 
 public_bp = Blueprint("public", __name__)
 
+# public home page shows latest news, upcoming fixtures, and recent results
 @public_bp.route("/public")
 def home():
     latest_news = News.query.order_by(News.published_at.desc()).limit(3).all()
@@ -17,21 +18,25 @@ def home():
         recent_results=recent_results
     )
 
+# show all news posts on the public site
 @public_bp.route("/public/news")
 def news_list():
     items = News.query.order_by(News.published_at.desc()).all()
     return render_template("public_news.html", items=items)
 
+# show upcoming fixtures for fans
 @public_bp.route("/public/fixtures")
 def fixtures_list():
     upcoming = Fixture.query.filter_by(is_played=False).order_by(Fixture.match_date.asc()).all()
     return render_template("public_fixtures.html", fixtures=upcoming)
 
+# show completed match results on the public site
 @public_bp.route("/public/results")
 def results_list():
     results = Fixture.query.filter_by(is_played=True).order_by(Fixture.match_date.desc()).all()
     return render_template("public_results.html", results=results)
 
+# contact form for public users to send a message to the club
 @public_bp.route("/contact", methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
@@ -39,10 +44,12 @@ def contact():
         email = request.form.get("email", "").strip().lower()
         message = request.form.get("message", "").strip()
 
+        # make sure all contact form fields are filled
         if not name or not email or not message:
             flash("All fields are required.", "danger")
             return redirect(url_for("public.contact"))
 
+        # save contact message in database
         msg = ContactMessage(name=name, email=email, message=message)
         db.session.add(msg)
         db.session.commit()
